@@ -40,6 +40,10 @@ mean +0.95% net   median +0.20%   sd 11.24   t = 0.28
 move in the hour BEFORE the call, in the direction claimed: mean +4.24% (7 of 11)
 ```
 
+Those 17 calls are the demo extraction. The forward book below adds one live call (IDOL, posted
+21 Nov 18:50), which is why the book reads 18 calls and 4 open where this snapshot reads 17 and
+3 — `forward/summary.txt` is authoritative for the book, this block for the demo set.
+
 Five findings that matter:
 
 1. **The mean is one coin — remove IRYS and the book is negative.** IRYS pays +23.9% net on a
