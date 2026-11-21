@@ -123,6 +123,24 @@ The model is the only non-deterministic component, so its output is cached by co
 posts reproduce the same ledger. No login is needed for the deterministic path — only
 `extract_calls` requires the CLI.
 
+## The forward book
+
+The demo is one snapshot. `collect_forward.py` keeps the measurement going: each day it scrapes
+the channel, extracts only posts it has never seen, settles everything older than 24 hours
+against CMC, and appends to `forward/` — `posts.jsonl`, `calls.jsonl`, `ledger.csv`,
+`summary.txt`.
+
+```bash
+python3 collect_forward.py --dry      # fetch and report, write nothing, no model call
+python3 collect_forward.py            # one daily cycle; silent unless something changed
+```
+
+It is seeded on 21 Nov 2026 with the 17 calls above, so the book starts with a real n instead of
+an empty ledger, and it only grows from there. Two rules keep it from flattering itself: a post
+is never read twice (post ids are recorded), and a batch whose extraction fails is retried next
+cycle rather than silently dropped. The daily message fires only when a call was added or a
+position settled — a daily "nothing happened" trains you to ignore the day that matters.
+
 ## Install
 
 ```bash
