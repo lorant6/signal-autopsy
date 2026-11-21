@@ -195,21 +195,33 @@ def _evidence_lines(root: Path) -> dict[str, list[str]]:
 
 
 def _mentions(line: str, coin: str) -> bool:
-    """Does this post line name the ticker at all? `#IRYS`, `IRYS`, `IRYSUSDT` all count."""
+    """Does this post line name the ticker? `#IRYS`, `IRYS`, `IRYSUSDT`, `Bless` all count.
+
+    Matched against the raw line rather than an upper-cased copy: prose writes "etc." in lower
+    case, so upper-casing first made ETC match "etc." and X match a URL segment. Two forms are
+    accepted — the exact ticker in capitals, and its capitalised word form ("Bless" for BLESS,
+    which is how that channel actually writes it). URL paths are excluded on both sides so a
+    ticker is never inferred from a link.
+    """
     c = coin.strip().upper()
     if not c:
         return False
-    return bool(re.search(rf"(?<![A-Z0-9])#?{re.escape(c)}(?:USDT|USDC|PERP)?(?![A-Z0-9])",
-                          line.upper()))
+    forms = [c]
+    if c.isalpha() and len(c) >= 3:
+        forms.append(c.capitalize())
+    pattern = "|".join(re.escape(f) for f in forms)
+    return bool(re.search(rf"(?<![A-Za-z0-9#/])#?(?:{pattern})(?:USDT|USDC|PERP)?(?![A-Za-z0-9/])",
+                          line))
 
 
 def _pick_evidence(index: dict[str, list[str]], when: str,
                    coin: str) -> tuple[str | None, bool]:
     """The post line a call was read from, and whether the choice had to be guessed.
 
-    Between two posts in the same second, the one that names the ticker wins. When several
-    name it, or none does, the first is returned and flagged ambiguous — an honest "two posts
-    share this second" beats silently passing off the wrong one as exact provenance.
+    Between two posts in the same second, the one that names the ticker wins. If several name
+    it, or the only candidate never mentions the ticker, the line is returned flagged: the
+    evidence then rests on the timestamp alone, and saying so beats passing an inference off
+    as exact provenance.
     """
     candidates = index.get(_norm_ts(when)) or []
     if not candidates:
@@ -219,7 +231,7 @@ def _pick_evidence(index: dict[str, list[str]], when: str,
         return named[0], False
     if len(named) > 1:
         return named[0], True
-    return candidates[0], len(candidates) > 1
+    return candidates[0], True
 
 
 def _backfill_evidence(root: Path, evidence: dict[str, list[str]]) -> int:

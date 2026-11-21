@@ -163,6 +163,34 @@ def test_evidence_flags_an_ambiguous_second():
     assert len(rows) == 1 and rows[0]["evidence_ambiguous"] is True, rows
 
 
+def test_mentions_is_case_and_context_sensitive():
+    """`etc.` is not the ETC ticker and a URL is not a symbol."""
+    assert cf._mentions("and so on etc. nothing", "ETC") is False
+    assert cf._mentions("https://x.com/foo", "X") is False
+    assert cf._mentions("see https://t.me/IRYS/123", "IRYS") is False
+    assert cf._mentions("#ETC bullish", "ETC") is True
+    assert cf._mentions("Buying BTCUSDT now", "BTC") is True
+    assert cf._mentions("METHOD call on ETH", "ETH") is True
+    assert cf._mentions("METHOD only", "ETH") is False
+    assert cf._mentions("1INCH pumping", "1INCH") is True
+    assert cf._mentions("Buying Bless this week", "BLESS") is True
+    assert cf._mentions("cross the street", "CROSS") is False
+    assert cf._mentions("irys lowercase", "IRYS") is False, "lower-case prose is not a ticker"
+
+
+def test_single_post_without_the_ticker_is_flagged():
+    """One post, but it never names the coin: provenance rests on the timestamp, so say so."""
+    with tempfile.TemporaryDirectory() as d:
+        root = build_root(d)
+        ts = "2026-11-19T00:34:05+00:00"
+        (root / "demo" / "posts.txt").write_text(f"[{ts}] buying the dip again\n")
+        (root / "demo" / "calls.json").write_text(json.dumps([
+            dict(coin="IRYS", direction="long", called_at=ts, source="t.me/x")]))
+        cf.seed([], root=root)
+        rows = cf.read_jsonl(root / "forward" / "calls.jsonl")
+    assert len(rows) == 1 and rows[0]["evidence_ambiguous"] is True, rows
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
