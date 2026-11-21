@@ -250,6 +250,21 @@ def test_a_marked_ticker_outranks_an_unmarked_word():
     assert ambiguous is True, (line, ambiguous)
 
 
+def test_pair_and_spaced_tag_forms_are_strong():
+    """The forms a channel actually writes: `# IRYS`, `#$IRYS`, `IRYS/USDT`, `IRYS-PERP`."""
+    assert cf._mention_kind("# IRYS Bullish", "IRYS") == "strong"
+    assert cf._mention_kind("#$IRYS", "IRYS") == "strong"
+    assert cf._mention_kind("IRYS/USDT", "IRYS") == "strong"
+    assert cf._mention_kind("IRYS-PERP", "IRYS") == "strong"
+    assert cf._mention_kind("Buying IRYS/USDT now", "IRYS") == "strong"
+    # and the URL exclusion still holds through the new suffix rule
+    assert cf._mention_kind("see https://t.me/IRYS/123", "IRYS") is None
+    assert cf._mention_kind("https://x/IRYS/USDT", "IRYS") is None
+    # prose is still prose
+    assert cf._mention_kind("Link to the report", "LINK") == "weak"
+    assert cf._mention_kind("cross the street", "CROSS") is None
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

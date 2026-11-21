@@ -207,8 +207,9 @@ def _mention_kind(line: str, coin: str) -> str | None:
     """How the ticker is named: explicitly marked (`strong`) or as a bare word (`weak`).
 
     The channel marks its calls — `#IRYS Bullish`, `#BTC Short`, `Buying dip #ICNT`, the odd
-    `IRYSUSDT` pair — in 17 of the book's 18 rows. A `#`/`$` tag or an exchange-quote suffix is
-    the channel saying "this is the ticker", and it settles provenance on its own.
+    `IRYSUSDT` pair — in 17 of the book's 18 rows. A `#`/`$` tag, a tag with a space after it,
+    or an exchange-quote suffix (`IRYSUSDT`, `IRYS/USDT`, `IRYS-PERP`) is the channel saying
+    "this is the ticker", and it settles provenance on its own.
 
     A ticker with no such mark is a word, and English reuses these words: "MAX gains today",
     "Link to the report", "Near the top", "Etc." at the start of a sentence, or the capitalised
@@ -219,17 +220,18 @@ def _mention_kind(line: str, coin: str) -> str | None:
     c = coin.strip().upper()
     if not c:
         return None
-    esc, tail = re.escape(c), r"(?:USDT|USDC|PERP)?(?![A-Za-z0-9/])"
-    marked = r"(?<![A-Za-z0-9#/$])[#$]"
-    start = r"(?<![A-Za-z0-9#/$])"
-    if re.search(marked + esc + tail, line):
+    esc, end = re.escape(c), r"(?![A-Za-z0-9/])"
+    lead = r"(?<![A-Za-z0-9#/$])"
+    suffix = r"(?:[/-]?(?:USDT|USDC|PERP))"          # IRYSUSDT, IRYS/USDT, IRYS-PERP
+    if re.search(lead + r"[#$]+\s?" + esc + end, line):       # #IRYS, $IRYS, # IRYS, #$IRYS
         return "strong"
-    if re.search(start + esc + r"(?:USDT|USDC|PERP)(?![A-Za-z0-9/])", line):
-        return "strong"                      # an exchange pair names the ticker by itself
-    if re.search(start + r"[#$]?" + esc + tail, line):
-        return "weak"                        # exact capitals, but an English word too
+    if re.search(lead + esc + suffix + end, line):            # an exchange pair marks itself
+        return "strong"
+    if re.search(lead + r"[#$]?\s?" + esc + r"(?:[/-]?(?:USDT|USDC|PERP))?" + end, line):
+        return "weak"                                         # exact capitals, but an English word
     cap = c.capitalize()
-    if cap != c and re.search(start + r"[#$]?" + re.escape(cap) + tail, line):
+    if cap != c and re.search(lead + r"[#$]?\s?" + re.escape(cap)
+                              + r"(?:[/-]?(?:USDT|USDC|PERP))?" + end, line):
         return "weak"
     return None
 
