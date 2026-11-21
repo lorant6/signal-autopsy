@@ -1,0 +1,2 @@
+# Signal Autopsy uses the Python standard library only (3.10+).
+# Listed here because most judges look for it: no third-party packages are required.

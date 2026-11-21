@@ -1,0 +1,146 @@
+[
+ {
+  "coin": "BTC",
+  "direction": "short",
+  "called_at": "2026-11-18T20:15:11+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "BTC",
+  "direction": "short",
+  "called_at": "2026-11-19T00:33:23+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "IRYS",
+  "direction": "long",
+  "called_at": "2026-11-19T00:34:05+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "IRYS",
+  "direction": "long",
+  "called_at": "2026-11-19T00:53:19+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "CROSS",
+  "direction": "long",
+  "called_at": "2026-11-19T00:59:15+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "CROSS",
+  "direction": "long",
+  "called_at": "2026-11-19T01:01:55+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "IRYS",
+  "direction": "long",
+  "called_at": "2026-11-19T01:20:12+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "CROSS",
+  "direction": "long",
+  "called_at": "2026-11-19T02:01:35+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "IRYS",
+  "direction": "long",
+  "called_at": "2026-11-19T04:07:55+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "EVAA",
+  "direction": "long",
+  "called_at": "2026-11-19T08:05:07+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "ICNT",
+  "direction": "long",
+  "called_at": "2026-11-19T08:05:07+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "ICNT",
+  "direction": "long",
+  "called_at": "2026-11-19T16:38:57+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "ICNT",
+  "direction": "long",
+  "called_at": "2026-11-20T08:40:35+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "EVAA",
+  "direction": "long",
+  "called_at": "2026-11-20T12:51:43+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "ETH",
+  "direction": "short",
+  "called_at": "2026-11-20T16:40:35+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "BTC",
+  "direction": "short",
+  "called_at": "2026-11-20T18:13:31+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "EVAA",
+  "direction": "long",
+  "called_at": "2026-11-21T01:22:39+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "BTC",
+  "direction": "short",
+  "called_at": "2026-11-21T04:13:29+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "BTC",
+  "direction": "long",
+  "called_at": "2026-11-21T05:01:17+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "EVAA",
+  "direction": "long",
+  "called_at": "2026-11-21T05:01:17+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "EVAA",
+  "direction": "long",
+  "called_at": "2026-11-21T06:56:17+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "IRYS",
+  "direction": "long",
+  "called_at": "2026-11-21T07:25:04+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "BTC",
+  "direction": "long",
+  "called_at": "2026-11-21T08:36:23+00:00",
+  "source": "t.me/binance_futures"
+ },
+ {
+  "coin": "ETH",
+  "direction": "long",
+  "called_at": "2026-11-21T08:36:23+00:00",
+  "source": "t.me/binance_futures"
+ }
+]
