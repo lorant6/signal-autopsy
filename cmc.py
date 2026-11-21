@@ -56,9 +56,20 @@ def get(path: str, params: dict | None = None, cache_seconds: int = 0) -> dict:
     })
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
-            data = json.loads(r.read())
+            body = r.read()
     except urllib.error.HTTPError as exc:            # 401/403/429 must not look like an empty result
         raise CMCError(exc.code, exc.read().decode("utf-8", "replace")) from exc
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        # A DNS blip, a dropped route or a slow key must not end a scoring run: the caller
+        # writes the row as failed and carries on. status 0 marks it transport-level, which is
+        # how a later cycle knows the failure was retryable rather than a delisting.
+        reason = getattr(exc, "reason", exc)
+        raise CMCError(0, f"network failure, nothing received: {reason}") from exc
+
+    try:
+        data = json.loads(body)
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise CMCError(0, f"malformed response, not JSON: {body[:120]!r}") from exc
 
     if cached is not None:
         cached.write_text(json.dumps(data))

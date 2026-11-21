@@ -62,7 +62,21 @@ def score(calls: list[dict], horizon_h: float, fee_bps: float, slippage_bps: flo
             exit_ = cmc.quote_at(ident["id"], c["called_at"] + timedelta(hours=horizon_h))
             pre = cmc.quote_at(ident["id"], c["called_at"] - timedelta(hours=pre_h))
         except cmc.CMCError as exc:
-            rows.append(dict(coin=c["coin"], error=str(exc), called_at=c["called_at"].isoformat()))
+            # One unpriceable call must not end the run. The row is written as failed, every
+            # other call keeps scoring, and the next cycle retries it because the ledger is
+            # rebuilt from calls.jsonl each time. status 0 is transport-level (DNS, timeout,
+            # malformed body), not a statement about the coin.
+            rows.append(dict(coin=c["coin"], direction=c["direction"],
+                             called_at=c["called_at"].isoformat(timespec="seconds"),
+                             error=str(exc),
+                             note=("transport failure — retryable, not a verdict on the call"
+                                   if exc.status == 0 else "")))
+            continue
+        except Exception as exc:                                      # noqa: BLE001
+            rows.append(dict(coin=c["coin"], direction=c["direction"],
+                             called_at=c["called_at"].isoformat(timespec="seconds"),
+                             error=f"{type(exc).__name__}: {exc}",
+                             note="unexpected per-call failure — the run continued"))
             continue
 
         sign = 1 if c["direction"] == "long" else -1
@@ -113,6 +127,26 @@ def verdict(mean: float, t: float, n: int) -> str:
     return f"positive and statistically suggestive (t={t:.2f}) — still check pre-move drift"
 
 
+def slippage_sensitivity(rows: list[dict], slippage_bps: float, mult: float) -> dict:
+    """Mean net if slippage per side were `mult` times the flat assumption.
+
+    The default 30bp is a venue-fee number, not a micro-cap number: on a thin listing the
+    price you could have taken sits well below the aggregate CMC print. Scaling it is the
+    cheapest way to see whether a positive mean survives a believable cost.
+    """
+    net = [r["net_pct"] for r in rows if "net_pct" in r]
+    if not net:
+        return {}
+    extra = 2 * slippage_bps * (mult - 1) / 100.0        # slippage is charged on both sides
+    adj = [x - extra for x in net]
+    mean = st.mean(adj)
+    sd = st.stdev(adj) if len(adj) > 1 else 0.0
+    t = mean / (sd / len(adj) ** 0.5) if sd else 0.0
+    return dict(slippage_x=mult, extra_cost_pct=round(extra, 2), net_mean=round(mean, 2),
+                median=round(st.median(adj), 2), t_stat=round(t, 2),
+                verdict=verdict(mean, t, len(adj)))
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -122,6 +156,8 @@ def main() -> None:
     sc.add_argument("--fee-bps", type=float, default=11.0, help="round-trip fee, basis points")
     sc.add_argument("--slippage-bps", type=float, default=30.0, help="per side, basis points")
     sc.add_argument("--pre-hours", type=float, default=1.0, help="window for pre-call drift")
+    sc.add_argument("--slippage-x", type=float, default=1.0,
+                    help="scale the per-side slippage assumption (2 = double it), for sensitivity")
     sc.add_argument("--json", action="store_true")
     sc.add_argument("--ledger", help="write the per-call ledger as CSV here")
     a = ap.parse_args()
@@ -144,7 +180,10 @@ def main() -> None:
                 for r in rows:
                     w.writerow(r)
         if a.json:
-            print(json.dumps(dict(summary=summary, calls=rows), indent=2))
+            out = dict(summary=summary, calls=rows)
+            if a.slippage_x != 1.0:
+                out["slippage_sensitivity"] = slippage_sensitivity(rows, a.slippage_bps, a.slippage_x)
+            print(json.dumps(out, indent=2))
             return
         print(f"\n{summary['n']} calls scored over {a.horizon:g}h"
               + (f" · {summary.get('pending', 0)} still open (horizon not elapsed)"
@@ -157,6 +196,11 @@ def main() -> None:
                   f"  ·  t = {summary['t_stat']:.2f}")
             print(f"  move in the window BEFORE the call: {summary['pre_move_mean']:+.2f}%"
                   f" ({summary['pre_move_positive']}/{summary['n']} had already moved)")
+            if a.slippage_x != 1.0:
+                sens = slippage_sensitivity(rows, a.slippage_bps, a.slippage_x)
+                print(f"  at {a.slippage_x:g}x slippage (cost {sens['extra_cost_pct']:+.2f}pp more):"
+                      f" mean {sens['net_mean']:+.2f}%  ·  median {sens['median']:+.2f}%"
+                      f"  ·  t {sens['t_stat']:.2f}")
             print(f"\n  VERDICT: {summary['verdict']}")
 
 

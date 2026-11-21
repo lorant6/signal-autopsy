@@ -7,6 +7,7 @@ judge would question are asserted here rather than trusted.
 """
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta, timezone
 
 import cmc
@@ -110,6 +111,65 @@ def test_missing_key_fails_loudly():
     finally:
         if saved:
             os.environ["CMC_API_KEY"] = saved
+
+
+def test_transport_errors_become_cmc_errors():
+    """A DNS blip, a timeout or a truncated body must raise CMCError, not escape cmc.get."""
+    import importlib
+    import urllib.error
+    importlib.reload(cmc)                       # earlier tests monkeypatch cmc.get / quote_at
+    saved_key = os.environ.setdefault("CMC_API_KEY", "test-key-never-sent")
+    saved_open = cmc.urllib.request.urlopen
+
+    def boom(*a, **k):
+        raise urllib.error.URLError("temporary DNS failure")
+
+    cmc.urllib.request.urlopen = boom
+    try:
+        cmc.get("/v1/cryptocurrency/map")
+    except cmc.CMCError as exc:
+        assert exc.status == 0, exc.status
+        assert "network failure" in str(exc), exc
+    else:
+        raise AssertionError("a transport failure escaped as something other than CMCError")
+    finally:
+        cmc.urllib.request.urlopen = saved_open
+        if saved_key is None:
+            os.environ.pop("CMC_API_KEY", None)
+
+
+def test_one_failure_does_not_end_the_run():
+    """A call that cannot be priced becomes a failed row; every other call still scores."""
+    import importlib
+    import signal_autopsy as sa2
+    importlib.reload(cmc)
+    importlib.reload(sa2)
+
+    def resolve(sym: str):
+        if sym == "IRYS":
+            raise cmc.CMCError(0, "network failure, nothing received: temporary DNS failure")
+        return dict(id=1)
+
+    sa2.cmc.resolve_coin = resolve
+    sa2.cmc.quote_at = lambda cid, when, interval="1h": dict(
+        price=1.0, bucket=str(when), lag_seconds=0)
+    calls = [dict(coin="IRYS", direction="long", called_at=CALL, source="t"),
+             dict(coin="BTC", direction="short", called_at=CALL, source="t")]
+    rows = sa2.score(calls, 24, 11, 30)
+    assert len(rows) == 2, rows
+    bad, good = rows
+    assert "network failure" in bad["error"] and "retryable" in bad["note"], bad
+    assert "net_pct" in good and "error" not in good, good
+    summary = sa2.report(rows, 24)
+    assert (summary["n"], summary["failed"]) == (1, 1), summary
+
+
+def test_slippage_sensitivity_scales_both_sides():
+    rows = [dict(net_pct=1.0, gross_pct=1.71, pre_move_pct=0.0)] * 10
+    sens = sa.slippage_sensitivity(rows, 30, 2.0)
+    assert abs(sens["extra_cost_pct"] - 0.6) < 0.01, sens      # 2 x 30bp charged twice
+    assert abs(sens["net_mean"] - 0.4) < 0.01, sens
+    assert sa.slippage_sensitivity([], 30, 2.0) == {}
 
 
 if __name__ == "__main__":
