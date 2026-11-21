@@ -53,6 +53,12 @@ The tool reports the calls it cannot score and the calls whose horizon has not f
 separate lines. Deleting them would be the easiest way to make the numbers look good, which is
 exactly why the output refuses to.
 
+## Demo
+
+A 21-second walkthrough — the live run, the settled ledger, and the MCP tools:
+[`demo/signal-autopsy-demo.mp4`](demo/signal-autopsy-demo.mp4)
+(rendered from `demo/demo_video.html`, no screen-recording tooling required)
+
 ## What it does
 
 ```

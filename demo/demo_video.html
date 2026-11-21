@@ -1,0 +1,176 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  :root{
+    --bg:#0d1117; --ink:#e6edf3; --dim:#8b949e; --line:#30363d;
+    --green:#7ee787; --amber:#e3b341; --blue:#79c0ff; --red:#ff7b72;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;width:1280px;height:720px;overflow:hidden;background:var(--bg);
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink)}
+  #stage{position:relative;width:1280px;height:720px;overflow:hidden}
+  .layer{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+    align-items:flex-start;padding:0 96px}
+
+  /* title */
+  #title{align-items:center;text-align:center}
+  #title .mark{width:190px;height:190px}
+  #title h1{margin:26px 0 10px;font-family:Inter,Helvetica,Arial,sans-serif;font-size:64px;letter-spacing:-2px}
+  #title p{margin:0;color:var(--green);font-size:22px}
+
+  /* terminal */
+  #termwrap{justify-content:center;align-items:stretch;padding:70px 90px}
+  .win{background:#161b22;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .bar{display:flex;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:#1c2129}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .bar span.t{margin-left:10px;color:var(--dim);font-size:14px}
+  pre{margin:0;padding:22px 26px;font-size:17px;line-height:1.62;white-space:pre-wrap;color:#c9d1d9}
+  .g{color:var(--green)} .y{color:var(--amber)} .b{color:var(--blue)} .d{color:var(--dim)}
+  .cursor{display:inline-block;width:10px;height:20px;background:var(--green);vertical-align:-3px}
+
+  /* callout */
+  #callout{position:absolute;left:96px;right:96px;bottom:44px;display:flex;gap:16px;align-items:center;
+    font-family:Inter,Helvetica,Arial,sans-serif;font-size:19px;color:var(--dim)}
+  #callout b{color:var(--ink)}
+
+  /* ledger / mcp */
+  h2{font-family:Inter,Helvetica,Arial,sans-serif;font-size:33px;margin:0 0 18px;letter-spacing:-.5px}
+  #ledger pre,#mcp pre{font-size:15px;line-height:1.55}
+  table{border-collapse:collapse;font-size:15px}
+  th,td{text-align:left;padding:6px 16px 6px 0;color:#c9d1d9}
+  th{color:var(--dim);font-weight:400;border-bottom:1px solid var(--line)}
+  td.pos{color:var(--green)} td.neg{color:var(--red)}
+  .tool{display:flex;gap:14px;align-items:baseline;margin:14px 0;font-size:20px}
+  .tool .n{color:var(--blue)} .tool .d{color:var(--dim);font-size:17px}
+
+  /* end */
+  #end{align-items:center;text-align:center}
+  #end .mark{width:132px;height:132px}
+  #end h1{margin:22px 0 6px;font-family:Inter,Helvetica,Arial,sans-serif;font-size:46px;letter-spacing:-1.5px}
+  #end .u{margin:10px 0 0;color:var(--ink);font-size:23px}
+  #end .h{margin:16px 0 0;color:var(--blue);font-size:22px}
+  #end .s{margin:8px 0 0;color:var(--dim);font-size:17px}
+</style></head>
+<body><div id="stage">
+
+  <div class="layer" id="title">
+    <img class="mark" src="../brand/logo.svg">
+    <h1>Signal Autopsy</h1>
+    <p>score the call. publish the ledger.</p>
+  </div>
+
+  <div class="layer" id="termwrap">
+    <div class="win">
+      <div class="bar">
+        <span class="dot" style="background:#ff5f57"></span>
+        <span class="dot" style="background:#febc2e"></span>
+        <span class="dot" style="background:#28c840"></span>
+        <span class="t">signal-autopsy — live CoinMarketCap data</span>
+      </div>
+      <pre id="pre"></pre>
+    </div>
+    <div id="callout"><span id="co1"></span></div>
+  </div>
+
+  <div class="layer" id="ledger">
+    <h2>Every call settles in the ledger</h2>
+    <table id="tbl">
+      <tr><th>coin</th><th>side</th><th>entry</th><th>exit</th><th>gross</th><th>net of costs</th></tr>
+    </table>
+  </div>
+
+  <div class="layer" id="mcp">
+    <h2>Also a Model Context Protocol server</h2>
+    <div class="tool"><span class="n">resolve_coin</span><span class="d">ticker → CoinMarketCap id, symbol collisions included</span></div>
+    <div class="tool"><span class="n">quote_at</span><span class="d">price at any past instant, and the bucket it came from</span></div>
+    <div class="tool"><span class="n">score_calls</span><span class="d">calls in, ledger and verdict out</span></div>
+  </div>
+
+  <div class="layer" id="end">
+    <img class="mark" src="../brand/logo.svg">
+    <h1>Signal Autopsy</h1>
+    <p class="u">github.com/lorant6/signal-autopsy</p>
+    <p class="h">#BuildwithCMC</p>
+    <p class="s">CoinMarketCap API · AI Agents &amp; Automation</p>
+  </div>
+
+</div>
+<script>
+const CMD = "$ python3 signal_autopsy.py score demo/calls.json --ledger demo/ledger_live.csv";
+const OUT = [
+  ['<span class="g">10 calls scored over 24h</span> <span class="y">· 11 still open (horizon not elapsed) · 3 unscoreable</span>', 5.0],
+  ['  gross <span class="g">+7.33%</span>  ·  after costs <span class="g">+6.62%</span>  ·  median <span class="g">+2.56%</span>', 5.45],
+  ['  8/10 profitable  ·  sd 15.52  ·  t = 1.35', 5.9],
+  ['  move in the window BEFORE the call: <span class="y">+5.51%</span> (7/10 had already moved)', 6.35],
+  ['', 6.6],
+  ['  <span class="y">VERDICT: positive but indistinguishable from luck at n=10 (t=1.35) —</span>', 6.8],
+  ['  <span class="y">keep collecting before risking anything</span>', 7.05],
+];
+const ROWS = [
+  ['BTC','short','62691.62704363','62118.03847789','+0.91%','+0.20%', 9.90],
+  ['BTC','short','62816.44912369','62015.15586387','+1.28%','+0.57%', 10.35],
+  ['IRYS','long','0.01910709','0.02381027','+24.61%','+23.90%', 10.80],
+  ['IRYS','long','0.02370435','0.02181922','-7.95%','-8.66%', 11.25],
+  ['EVAA','long','4.20135643','5.4203302','+29.01%','+28.30%', 11.70],
+  ['ICNT','long','0.4482676','0.36173728','-19.30%','-20.01%', 12.15]
+];
+const TOOLS = [[0,14.0],[1,14.35],[2,14.7]];
+
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const ease=(t,s,d)=>{const x=clamp((t-s)/d,0,1);return x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2;};
+function show(el,op,y=0){el.style.opacity=op;el.style.transform=`translateY(${y}px)`;}
+
+function render(t){
+  const titleIn=ease(t,0.15,0.6), titleOut=ease(t,2.35,0.4);
+  show(document.getElementById('title'), clamp(titleIn-titleOut,0,1), (1-titleIn)*10 - titleOut*10);
+
+  const termIn=ease(t,2.75,0.5), termOut=ease(t,9.3,0.45);
+  const tw=document.getElementById('termwrap');
+  show(tw, clamp(termIn-termOut,0,1), (1-termIn)*16 - termOut*16);
+
+  // typewriter
+  const typed=Math.floor(CMD.length*clamp((t-3.1)/1.5,0,1));
+  const blinking = (Math.floor(t*2)%2===0) ? 1 : 0.25;
+  let html='<span class="g">$</span> '+CMD.slice(2,typed);
+  if(t<4.75) html+=`<span class="cursor" style="opacity:${(t>3.05)?blinking:0}"></span>`;
+  html+='\n';
+  for(const [line,at] of OUT){ if(t>=at) html+=line+'\n'; }
+  document.getElementById('pre').innerHTML=html;
+
+  const coIn=ease(t,7.5,0.5), coOut=ease(t,9.1,0.4);
+  document.getElementById('co1').innerHTML=
+    'It reports what it <b>cannot</b> price instead of deleting it from the sample.';
+  document.getElementById('co1').parentElement.style.opacity=clamp(coIn-coOut,0,1);
+
+  const ledIn=ease(t,9.9,0.5), ledOut=ease(t,13.7,0.45);
+  const led=document.getElementById('ledger');
+  show(led, clamp(ledIn-ledOut,0,1), (1-ledIn)*16 - ledOut*16);
+  const tbl=document.getElementById('tbl');
+  tbl.querySelectorAll('tr.data').forEach(r=>r.remove());
+  for(const row of ROWS){
+    const at=row[row.length-1];
+    if(t<at) continue;
+    const tr=document.createElement('tr'); tr.className='data';
+    tr.style.opacity=String(ease(t,at,0.3));
+    const cells=row.slice(0,6).map((c,i)=>{
+      const cls = i===5 ? (c.startsWith('-')?'neg':'pos') : (i===4 ? (c.startsWith('-')?'neg':'pos') : '');
+      return `<td class="${cls}">${c}</td>`;
+    }).join('');
+    tr.innerHTML=cells; tbl.appendChild(tr);
+  }
+
+  const mcpIn=ease(t,13.9,0.5), mcpOut=ease(t,16.7,0.45);
+  const mcp=document.getElementById('mcp');
+  show(mcp, clamp(mcpIn-mcpOut,0,1), (1-mcpIn)*16 - mcpOut*16);
+  mcp.querySelectorAll('.tool').forEach((el,i)=>{
+    const at=14.0+i*0.32;
+    el.style.opacity=String(ease(t,at,0.3));
+    el.style.transform=`translateX(${(1-ease(t,at,0.3))*10}px)`;
+  });
+
+  const endIn=ease(t,16.9,0.6);
+  show(document.getElementById('end'), endIn, (1-endIn)*12);
+}
+window.render=render;
+render(0);
+</script></body></html>
