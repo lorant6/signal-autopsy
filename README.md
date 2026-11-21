@@ -29,25 +29,30 @@ an opinion.
 
 ## Why this is not a toy
 
-Run against 24 real calls scraped from a live Telegram channel, priced by CMC on 21 Nov 2026:
+Run against a 25-post scrape of a live Telegram channel, parsed by `extract_calls.py` and priced
+by CMC on 21 Nov 2026:
 
 ```
-24 calls in the file · 10 settled at 24h · 11 still open (horizon not elapsed) · 3 unscoreable
+17 calls extracted from 25 posts · 11 settled at 24h · 3 still open · 3 unscoreable
 
-mean +6.62% net   median +2.56%   sd 15.52   t = 1.35
-8/10 profitable after fees and slippage
-move in the hour BEFORE the call, in the direction claimed: mean +5.51% (7 of 10)
+mean +0.95% net   median +0.20%   sd 11.24   t = 0.28
+7/11 profitable after fees and slippage
+move in the hour BEFORE the call, in the direction claimed: mean +4.24% (7 of 11)
 ```
 
-Four findings that matter:
+Five findings that matter:
 
 1. **The mean is carried by micro-caps.** IRYS alone pays +23.9% net on one call; the median
-   call earns +2.56%. Judge a channel by the median or you are judging its best trade.
-2. **t = 1.35 is not an edge.** At n=10 the tool refuses to call it one.
-3. **The calls arrive after the move.** +5.51% of the move has already happened in the hour
+   call earns +0.20%. Judge a channel by the median or you are judging its best trade.
+2. **t = 0.28 is not an edge.** At n=11 the tool refuses to call it one.
+3. **The calls arrive after the move.** +4.24% of the move has already happened in the hour
    before the call is posted — the difference between a signal and a broadcast.
 4. **Three calls are unpriceable at all.** CROSS is delisted on CMC, so the tool says so instead
    of quietly dropping it from the sample and flattering the average.
+5. **Parsing is part of the measurement.** A hand-parse of this same scrape counted ten
+   commentary posts as calls and scored one `Close #BTC short` as a long entry; on that set the
+   channel appeared to earn +6.62% (t = 1.35). Read carefully, it earns +0.95%. A tool that only
+   audits the channel and not its own reading of the channel is doing half the job.
 
 The tool reports the calls it cannot score and the calls whose horizon has not finished as
 separate lines. Deleting them would be the easiest way to make the numbers look good, which is
