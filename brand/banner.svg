@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 520" width="1600" height="520">
+  <title>Signal Autopsy</title>
+  <rect width="1600" height="520" fill="#0d1117"/>
+  <g transform="translate(140,84) scale(0.36)">
+  <line x1="130" y1="806" x2="902" y2="806" stroke="#30363d" stroke-width="4"/>
+  <path d="M168 736 L286 694 L286 630 L410 606 L410 550 L488 522 L488 464 L622 412"
+        fill="none" stroke="#7ee787" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="622" y1="248" x2="622" y2="856" stroke="#e3b341" stroke-width="14"
+        stroke-dasharray="34 26" stroke-linecap="round"/>
+  <path d="M622 412 L764 514 L764 590 L896 684" fill="none" stroke="#e3b341" stroke-width="22"
+        stroke-dasharray="44 30" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+  <circle cx="622" cy="412" r="36" fill="#0d1117"/>
+  <circle cx="622" cy="412" r="36" fill="none" stroke="#e3b341" stroke-width="16"/>
+</g>
+  <text x="560" y="250" font-family="Inter, Helvetica, Arial, sans-serif" font-size="112"
+        font-weight="700" fill="#e6edf3" letter-spacing="-2">Signal Autopsy</text>
+  <text x="564" y="330" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="40"
+        fill="#7ee787">score the call. publish the ledger.</text>
+</svg>

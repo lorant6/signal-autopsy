@@ -6,6 +6,11 @@ honest arithmetic that most signal channels never publish.**
 Built for the *Build with CMC: API Hackathon, Round 2* (Nov 2026), track **AI Agents and
 Automation**.
 
+<img src="brand/logo.svg" width="72" align="right" alt="Signal Autopsy">
+
+The mark is the argument: a call climbs, a marker lands on it, and what follows the marker falls
+away as a dashed grey line — the part nobody publishes.
+
 ---
 
 ## The problem
