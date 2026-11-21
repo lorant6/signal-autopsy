@@ -1,4 +1,4 @@
-# Live run — 2026-11-21 10:50 UTC, real key, 24 calls scraped from a live Telegram channel
+# Live run — 2026-11-21 11:03 UTC, real key, 24 calls scraped from a live Telegram channel
 
 $ python3 signal_autopsy.py score demo/calls.json --ledger demo/ledger_live.csv
 
@@ -13,6 +13,7 @@ $ python3 test_math.py
   ok  test_costs_always_applied
   ok  test_counts_add_up
   ok  test_long_win
+  ok  test_missing_key_fails_loudly
   ok  test_quote_at_rejects_future_and_accepts_dict
   ok  test_short_win_and_lose
   ok  test_unripe_call_is_pending_not_error
