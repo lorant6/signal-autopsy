@@ -15,6 +15,7 @@ import argparse
 import json
 import statistics as st
 import sys
+import traceback
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -73,10 +74,14 @@ def score(calls: list[dict], horizon_h: float, fee_bps: float, slippage_bps: flo
                                    if exc.status == 0 else "")))
             continue
         except Exception as exc:                                      # noqa: BLE001
+            # A defect in this file must be visible. Swallowing it into a row makes every call
+            # "unexpected per-call failure" and the ledger quietly empty, which is worse than a
+            # crash; the traceback goes to stderr and the run still finishes.
+            traceback.print_exc(file=sys.stderr)
             rows.append(dict(coin=c["coin"], direction=c["direction"],
                              called_at=c["called_at"].isoformat(timespec="seconds"),
                              error=f"{type(exc).__name__}: {exc}",
-                             note="unexpected per-call failure — the run continued"))
+                             note="unexpected per-call failure — traceback on stderr"))
             continue
 
         sign = 1 if c["direction"] == "long" else -1
