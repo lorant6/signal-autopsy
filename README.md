@@ -186,6 +186,14 @@ As of the 21 Nov snapshot the book reads **11 scored · 4 open · 3 unpriceable*
 `forward/summary.txt` is the authoritative figure and is rewritten each cycle, so read it rather
 than this paragraph.
 
+Evidence is attached per row and the tool says when it had to guess. A message timestamp is
+only whole seconds, so two different posts can share one; the line that names the ticker in
+capitals wins, and a row whose line had to be inferred is marked `evidence_ambiguous` in
+`forward/calls.jsonl` rather than passed off as exact provenance. One limit is worth stating:
+a ticker that is also an ordinary English word is indistinguishable from prose when it appears
+in capitals (`MAX gains today`), and no flag can rescue that case — the label tells you the
+evidence was chosen by rule, not that the rule was right.
+
 ## Install
 
 ```bash

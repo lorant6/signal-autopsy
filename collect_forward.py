@@ -195,23 +195,12 @@ def _evidence_lines(root: Path) -> dict[str, list[str]]:
 
 
 def _mentions(line: str, coin: str) -> bool:
-    """Does this post line name the ticker? `#IRYS`, `IRYS`, `IRYSUSDT`, `Bless` all count.
+    """Yes/no form of `_mention_kind`, kept for callers that only need the boolean.
 
-    Matched against the raw line rather than an upper-cased copy: prose writes "etc." in lower
-    case, so upper-casing first made ETC match "etc." and X match a URL segment. Two forms are
-    accepted — the exact ticker in capitals, and its capitalised word form ("Bless" for BLESS,
-    which is how that channel actually writes it). URL paths are excluded on both sides so a
-    ticker is never inferred from a link.
+    The regex lives in one place: when these were two implementations, a fix to one of them
+    left the other silently wrong, and the tests were pinning the copy nobody used.
     """
-    c = coin.strip().upper()
-    if not c:
-        return False
-    forms = [c]
-    if c.isalpha() and len(c) >= 3:
-        forms.append(c.capitalize())
-    pattern = "|".join(re.escape(f) for f in forms)
-    return bool(re.search(rf"(?<![A-Za-z0-9#/])#?(?:{pattern})(?:USDT|USDC|PERP)?(?![A-Za-z0-9/])",
-                          line))
+    return _mention_kind(line, coin) is not None
 
 
 def _mention_kind(line: str, coin: str) -> str | None:

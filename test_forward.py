@@ -217,6 +217,23 @@ def test_mention_kind_separates_exact_from_capitalised():
     assert cf._mention_kind("$XRP pumping", "X") is None, "a longer ticker is not this one"
 
 
+def test_the_two_matchers_cannot_drift():
+    """`_mentions` is a wrapper now; if it ever grows its own regex again this fails."""
+    cases = [("and so on etc. nothing", "ETC"), ("#ETC bullish", "ETC"),
+             ("Buying Bless this week", "BLESS"), ("cross the street", "CROSS"),
+             ("MAX gains today", "MAX"), ("see https://t.me/IRYS/123", "IRYS"),
+             ("Buying BTCUSDT now", "BTC"), ("1INCH pumping", "1INCH"),
+             ("METHOD only", "ETH"), ("irys lowercase", "IRYS")]
+    for line, coin in cases:
+        assert cf._mentions(line, coin) is (cf._mention_kind(line, coin) is not None), (line, coin)
+
+
+def test_an_all_caps_english_word_is_indistinguishable():
+    """Pinned limitation: MAX is a ticker and a word, and capitals carry no signal to tell them
+    apart. The flag cannot rescue this case; the README says so rather than implying otherwise."""
+    assert cf._mention_kind("MAX gains today", "MAX") == "strong"
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
