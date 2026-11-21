@@ -137,28 +137,93 @@ def write_ledger(rows: list[dict]) -> None:
             w.writerow({c: r.get(c, "") for c in cols})
 
 
-def seed(scraped: list[dict]) -> None:
+def _norm_ts(value: str) -> str:
+    """Canonical UTC ISO instant, so a scrape and the demo file compare equal."""
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00")) \
+            .astimezone(timezone.utc).isoformat(timespec="seconds")
+    except ValueError:
+        return str(value)
+
+
+def _evidence_lines(root: Path) -> dict[str, str]:
+    """timestamp -> the post line a call was read from.
+
+    Posts already in forward/posts.jsonl win over the demo scrape: they are what the channel
+    published, in the form it published it. The demo file is the fallback because the 19 Nov
+    posts had scrolled off the t.me/s preview page before the book was seeded.
+    """
+    index: dict[str, str] = {}
+    for p in read_jsonl(root / "forward" / "posts.jsonl"):
+        if p.get("ts") and p.get("text"):
+            index.setdefault(_norm_ts(p["ts"]), f"[{p['ts']}] {p['text']}")
+    demo = root / "demo" / "posts.txt"
+    if demo.exists():
+        for line in demo.read_text().splitlines():
+            m = re.match(r"\[([^\]]+)\]\s*(\S.*)", line.strip())
+            if m:
+                index.setdefault(_norm_ts(m.group(1)), line.strip())
+    return index
+
+
+def _backfill_evidence(root: Path, evidence: dict[str, str]) -> int:
+    """Fill in rows already in the book that were seeded before evidence was carried.
+
+    Seeding twice is a no-op by design, so without this an old book keeps its empty evidence
+    fields forever and the repair only ever applies to rows that do not exist yet.
+    """
+    path = root / "forward" / "calls.jsonl"
+    rows = read_jsonl(path)
+    fixed = 0
+    for r in rows:
+        if not r.get("evidence"):
+            line = evidence.get(_norm_ts(r.get("called_at", "")))
+            if line:
+                r["evidence"] = line[:300]
+                fixed += 1
+    if fixed:
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text("".join(json.dumps(r, sort_keys=True) + "\n" for r in rows))
+        os.replace(tmp, path)
+    return fixed
+
+
+def seed(scraped: list[dict], root: Path = ROOT) -> None:
     """Start the forward book from the 21 Nov snapshot.
 
     Without this the book begins empty and the README's number has nothing behind it for a
-    fortnight. The seeded rows keep their real timestamps and are marked `seed` so a later
-    summary can separate them from calls collected live.
+    fortnight. The seeded rows keep their real timestamps and carry the post line they were
+    read from, so the book stays checkable against its own posts. A call whose post line
+    cannot be found in either scrape is dropped and counted, never written with an empty
+    evidence field: an untraceable row is the one thing an evidence book cannot afford.
     """
-    have_posts = {p["post_id"] for p in read_jsonl(POSTS)}
-    append_jsonl(POSTS, [p for p in scraped if p["post_id"] not in have_posts])
-    have_calls = {(c["coin"], c["direction"], c["called_at"]) for c in read_jsonl(CALLS)}
-    demo = json.loads((ROOT / "demo" / "calls.json").read_text())
-    rows = []
-    for c in demo:
+    forward = root / "forward"
+    posts, calls_path = forward / "posts.jsonl", forward / "calls.jsonl"
+    have_posts = {p["post_id"] for p in read_jsonl(posts)}
+    append_jsonl(posts, [p for p in scraped if p["post_id"] not in have_posts])
+    evidence = _evidence_lines(root)
+    backfilled = _backfill_evidence(root, evidence)
+    have_calls = {(c["coin"], c["direction"], c["called_at"]) for c in read_jsonl(calls_path)}
+    rows: list[dict] = []
+    unresolved: list[str] = []
+    for c in json.loads((root / "demo" / "calls.json").read_text()):
         key = (c["coin"], c["direction"], c["called_at"])
         if key in have_calls:
             continue
+        line = evidence.get(_norm_ts(c["called_at"]))
+        if not line:
+            unresolved.append(c["called_at"])
+            continue
         have_calls.add(key)
         rows.append(dict(coin=c["coin"], direction=c["direction"], called_at=c["called_at"],
-                         evidence="", source=c.get("source") or SOURCE, seed=True,
+                         evidence=line[:300], source=c.get("source") or SOURCE, seed=True,
                          added_at=datetime.now(timezone.utc).isoformat(timespec="seconds")))
-    append_jsonl(CALLS, rows)
-    print(f"seeded {len(rows)} call(s) and {len(scraped)} post id(s)")
+    append_jsonl(calls_path, rows)
+    print(f"seeded {len(rows)} call(s) with their post line, {len(scraped)} post id(s)"
+          + (f", backfilled {backfilled}" if backfilled else "")
+          + (f", dropped {len(unresolved)} with no matching post" if unresolved else ""))
+    for ts in unresolved:
+        print(f"  dropped (no post line to point at): {ts}", file=sys.stderr)
 
 
 def main() -> int:
