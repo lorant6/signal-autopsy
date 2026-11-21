@@ -127,6 +127,9 @@ def main() -> None:
     a = ap.parse_args()
 
     if a.cmd == "score":
+        # Fail on a missing key up front, not lazily: with a warm quote cache the run would
+        # otherwise succeed with no key at all and mask a broken setup.
+        cmc._key()
         calls = load_calls(a.path)
         rows = score(calls, a.horizon, a.fee_bps, a.slippage_bps, a.pre_hours)
         summary = report(rows, a.horizon)

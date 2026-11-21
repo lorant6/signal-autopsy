@@ -94,6 +94,24 @@ def test_quote_at_rejects_future_and_accepts_dict():
     assert cmc._coin_id("1027") == 1027
 
 
+def test_missing_key_fails_loudly():
+    """No key must stop the run before it can pretend the cache answered for it."""
+    import importlib
+    import os
+    importlib.reload(cmc)          # earlier tests monkeypatch cmc.get / quote_at
+    saved = os.environ.pop("CMC_API_KEY", None)
+    try:
+        try:
+            cmc._key()
+        except SystemExit as exc:
+            assert "CMC_API_KEY" in str(exc), exc
+        else:
+            raise AssertionError("a missing key must stop the run, not fall through to the cache")
+    finally:
+        if saved:
+            os.environ["CMC_API_KEY"] = saved
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
