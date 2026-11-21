@@ -1,6 +1,6 @@
 n = 11
 failed = 3
-pending = 3
+pending = 4
 horizon_h = 24.0
 gross_mean = 1.66
 net_mean = 0.95
@@ -14,7 +14,9 @@ pre_move_positive = 7
 verdict = positive but indistinguishable from luck at n=11 (t=0.28) — keep collecting before risking anything
 
 Signal Autopsy — forward book · t.me/binance_futures
-11 scored · 3 open · 3 unpriceable
+11 scored · 4 open · 3 unpriceable
 mean +0.95% net · median +0.20% · sd 11.24 · t 0.28
 7/11 profitable · pre-call drift +4.24%
 VERDICT: positive but indistinguishable from luck at n=11 (t=0.28) — keep collecting before risking anything
+
+new: IDOL long
