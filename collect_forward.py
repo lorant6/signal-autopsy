@@ -214,23 +214,52 @@ def _mentions(line: str, coin: str) -> bool:
                           line))
 
 
+def _mention_kind(line: str, coin: str) -> str | None:
+    """How the ticker is named: exactly (`strong`) or only as a capitalised word (`weak`).
+
+    The capitalised form is what the channel writes for BLESS ("Buying Bless this week"), but
+    it is also how English writes an ordinary word: "Link to the report", "Near the top",
+    "Etc." at the start of a sentence. A strong match settles provenance on its own; a weak one
+    only does so when nothing else shares that second, so callers can flag the difference
+    instead of presenting a guess as an exact citation.
+    """
+    c = coin.strip().upper()
+    if not c:
+        return None
+    tail = r"(?:USDT|USDC|PERP)?(?![A-Za-z0-9/])"
+    head = r"(?<![A-Za-z0-9#/])#?"
+    if re.search(head + re.escape(c) + tail, line):
+        return "strong"
+    cap = c.capitalize()
+    if cap != c and re.search(head + re.escape(cap) + tail, line):
+        return "weak"
+    return None
+
+
 def _pick_evidence(index: dict[str, list[str]], when: str,
                    coin: str) -> tuple[str | None, bool]:
     """The post line a call was read from, and whether the choice had to be guessed.
 
-    Between two posts in the same second, the one that names the ticker wins. If several name
-    it, or the only candidate never mentions the ticker, the line is returned flagged: the
-    evidence then rests on the timestamp alone, and saying so beats passing an inference off
-    as exact provenance.
+    Between two posts in the same second, the one that names the ticker in capitals wins. If
+    several do, or the only candidate never mentions the ticker, the line is returned flagged:
+    the evidence then rests on the timestamp alone, and saying so beats passing an inference off
+    as exact provenance. A capitalised-word match that has to beat another post in the same
+    second is flagged too — "Link to the report" is prose as often as it is a ticker.
     """
     candidates = index.get(_norm_ts(when)) or []
     if not candidates:
         return None, False
-    named = [line for line in candidates if _mentions(line, coin)]
-    if len(named) == 1:
-        return named[0], False
-    if len(named) > 1:
-        return named[0], True
+    kinds = [(_mention_kind(line, coin), line) for line in candidates]
+    strong = [line for kind, line in kinds if kind == "strong"]
+    weak = [line for kind, line in kinds if kind == "weak"]
+    if len(strong) == 1:
+        return strong[0], False
+    if len(strong) > 1:
+        return strong[0], True
+    if len(weak) == 1:
+        return weak[0], len(candidates) > 1
+    if len(weak) > 1:
+        return weak[0], True
     return candidates[0], True
 
 

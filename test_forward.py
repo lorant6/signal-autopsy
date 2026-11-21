@@ -191,6 +191,32 @@ def test_single_post_without_the_ticker_is_flagged():
     assert len(rows) == 1 and rows[0]["evidence_ambiguous"] is True, rows
 
 
+def test_prose_word_does_not_claim_exact_provenance():
+    """`Link to the report` is prose: if it beats another post from the same second, say so."""
+    ts = "2026-11-19T00:34:05+00:00"
+    index = {ts: [f"[{ts}] Link to the report below", f"[{ts}] something else entirely"]}
+    line, ambiguous = cf._pick_evidence(index, ts, "LINK")
+    assert line.endswith("Link to the report below") and ambiguous is True, (line, ambiguous)
+
+    # ...but a capitalised ticker with no rival in that second is still exact.
+    alone = {ts: [f"[{ts}] Buying Bless this week"]}
+    line, ambiguous = cf._pick_evidence(alone, ts, "BLESS")
+    assert line.endswith("Buying Bless this week") and ambiguous is False, (line, ambiguous)
+
+    # An exact ticker outranks prose written in capitals.
+    mixed = {ts: [f"[{ts}] Link to the report", f"[{ts}] #LINK long"]}
+    line, ambiguous = cf._pick_evidence(mixed, ts, "LINK")
+    assert line.endswith("#LINK long") and ambiguous is False, (line, ambiguous)
+
+
+def test_mention_kind_separates_exact_from_capitalised():
+    assert cf._mention_kind("#ETC bullish", "ETC") == "strong"
+    assert cf._mention_kind("Etc. is what follows", "ETC") == "weak"
+    assert cf._mention_kind("and so on etc.", "ETC") is None
+    assert cf._mention_kind("see https://t.me/IRYS/123", "IRYS") is None
+    assert cf._mention_kind("$XRP pumping", "X") is None, "a longer ticker is not this one"
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
