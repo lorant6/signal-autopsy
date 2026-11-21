@@ -204,23 +204,32 @@ def _mentions(line: str, coin: str) -> bool:
 
 
 def _mention_kind(line: str, coin: str) -> str | None:
-    """How the ticker is named: exactly (`strong`) or only as a capitalised word (`weak`).
+    """How the ticker is named: explicitly marked (`strong`) or as a bare word (`weak`).
 
-    The capitalised form is what the channel writes for BLESS ("Buying Bless this week"), but
-    it is also how English writes an ordinary word: "Link to the report", "Near the top",
-    "Etc." at the start of a sentence. A strong match settles provenance on its own; a weak one
-    only does so when nothing else shares that second, so callers can flag the difference
-    instead of presenting a guess as an exact citation.
+    The channel marks its calls — `#IRYS Bullish`, `#BTC Short`, `Buying dip #ICNT`, the odd
+    `IRYSUSDT` pair — in 17 of the book's 18 rows. A `#`/`$` tag or an exchange-quote suffix is
+    the channel saying "this is the ticker", and it settles provenance on its own.
+
+    A ticker with no such mark is a word, and English reuses these words: "MAX gains today",
+    "Link to the report", "Near the top", "Etc." at the start of a sentence, or the capitalised
+    `Bless`. Those stay candidates, but a weak one only wins when nothing else shares that
+    second; if it has to beat another post it is flagged rather than passed off as an exact
+    citation.
     """
     c = coin.strip().upper()
     if not c:
         return None
-    tail = r"(?:USDT|USDC|PERP)?(?![A-Za-z0-9/])"
-    head = r"(?<![A-Za-z0-9#/])#?"
-    if re.search(head + re.escape(c) + tail, line):
+    esc, tail = re.escape(c), r"(?:USDT|USDC|PERP)?(?![A-Za-z0-9/])"
+    marked = r"(?<![A-Za-z0-9#/$])[#$]"
+    start = r"(?<![A-Za-z0-9#/$])"
+    if re.search(marked + esc + tail, line):
         return "strong"
+    if re.search(start + esc + r"(?:USDT|USDC|PERP)(?![A-Za-z0-9/])", line):
+        return "strong"                      # an exchange pair names the ticker by itself
+    if re.search(start + r"[#$]?" + esc + tail, line):
+        return "weak"                        # exact capitals, but an English word too
     cap = c.capitalize()
-    if cap != c and re.search(head + re.escape(cap) + tail, line):
+    if cap != c and re.search(start + r"[#$]?" + re.escape(cap) + tail, line):
         return "weak"
     return None
 

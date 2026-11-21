@@ -229,9 +229,25 @@ def test_the_two_matchers_cannot_drift():
 
 
 def test_an_all_caps_english_word_is_indistinguishable():
-    """Pinned limitation: MAX is a ticker and a word, and capitals carry no signal to tell them
-    apart. The flag cannot rescue this case; the README says so rather than implying otherwise."""
-    assert cf._mention_kind("MAX gains today", "MAX") == "strong"
+    """Pinned limitation: MAX is a ticker and a word, and with no mark on the line nothing in
+    the text separates them. The flag cannot rescue this case; the README says so."""
+    assert cf._mention_kind("MAX gains today", "MAX") == "weak"
+    ts = "2026-11-19T00:34:05+00:00"
+    line, ambiguous = cf._pick_evidence({ts: [f"[{ts}] MAX gains today"]}, ts, "MAX")
+    assert line.endswith("MAX gains today") and ambiguous is False, (line, ambiguous)
+
+
+def test_a_marked_ticker_outranks_an_unmarked_word():
+    """The channel marks its calls; a bare word does not beat `#MAX` in the same second."""
+    ts = "2026-11-19T00:34:05+00:00"
+    index = {ts: [f"[{ts}] MAX gains today", f"[{ts}] #MAX long 10x"]}
+    line, ambiguous = cf._pick_evidence(index, ts, "MAX")
+    assert line.endswith("#MAX long 10x") and ambiguous is False, (line, ambiguous)
+
+    # Two unmarked words in one second cannot be told apart, so the row says so.
+    twins = {ts: [f"[{ts}] MAX gains today", f"[{ts}] something else"]}
+    line, ambiguous = cf._pick_evidence(twins, ts, "MAX")
+    assert ambiguous is True, (line, ambiguous)
 
 
 if __name__ == "__main__":
