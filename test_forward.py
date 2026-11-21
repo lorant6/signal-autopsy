@@ -91,6 +91,78 @@ def test_backfill_repairs_an_old_book():
     assert all(r["evidence"] for r in rows), [r["called_at"] for r in rows if not r["evidence"]]
 
 
+def test_append_survives_a_torn_last_line():
+    """A crash mid-write leaves no trailing newline; the next append must not be glued onto it."""
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "calls.jsonl"
+        p.write_text('{"coin":"BTC","direction":"long","called_at":"2026-11-19T00:00:00+00:00"}\n'
+                     '{"coin":"IRY')                                   # torn, no newline
+        cf.append_jsonl(p, [dict(coin="ETH", direction="short",
+                                 called_at="2026-11-20T00:00:00+00:00")])
+        bad: list[int] = []
+        rows = cf.read_jsonl(p, bad=bad)
+    assert [r["coin"] for r in rows] == ["BTC", "ETH"], rows
+    assert bad == [2], f"the torn line must still be reported, got {bad}"
+
+
+def test_backfill_refuses_to_rewrite_an_unreadable_book():
+    """Rewriting from what parsed would delete the line that did not."""
+    with tempfile.TemporaryDirectory() as d:
+        root = build_root(d)
+        demo = json.loads((root / "demo" / "calls.json").read_text())
+        book = (root / "forward" / "calls.jsonl")
+        good = dict(coin=demo[0]["coin"], direction=demo[0]["direction"],
+                    called_at=demo[0]["called_at"], evidence="", source=demo[0]["source"])
+        book.write_text(json.dumps(good) + "\n{\"coin\": \"TORN")
+        cf.seed([], root=root)
+        after = book.read_text()
+    lines = after.splitlines()
+    assert lines[0] == json.dumps(good), "the torn book must not be rewritten wholesale"
+    assert '{"coin": "TORN' in after, "the unreadable line must survive, not be deleted"
+    assert not json.loads(lines[0])["evidence"], "backfill must refuse while a line is unreadable"
+
+
+def test_evidence_prefers_the_post_that_names_the_coin():
+    """Two posts in the same second must not hand each other's text to a call."""
+    with tempfile.TemporaryDirectory() as d:
+        root = build_root(d)
+        ts = "2026-11-19T00:34:05+00:00"
+        (root / "demo" / "posts.txt").write_text(
+            f"[{ts}] #AAA Bullish\n[{ts}] #BBB Bullish\n")
+        (root / "demo" / "calls.json").write_text(json.dumps([
+            dict(coin="BBB", direction="long", called_at=ts, source="t.me/x")]))
+        cf.seed([], root=root)
+        rows = cf.read_jsonl(root / "forward" / "calls.jsonl")
+    assert len(rows) == 1, rows
+    assert rows[0]["evidence"].endswith("#BBB Bullish"), rows[0]["evidence"]
+    assert "evidence_ambiguous" not in rows[0], "an unambiguous pick must not be flagged"
+
+
+def test_summary_text_when_nothing_settled():
+    """A day with no settled call must say so instead of raising KeyError on a missing mean."""
+    txt = cf.summary_text(dict(n=0, failed=3, pending=4, note="no call could be scored"),
+                          "t.me/x")
+    assert "nothing settled yet" in txt and "4 open" in txt and "3 unpriceable" in txt, txt
+    normal = cf.summary_text(dict(n=11, failed=3, pending=4, net_mean=0.95, median=0.2,
+                                  stdev=11.24, t_stat=0.28, wins=7, pre_move_mean=4.24,
+                                  verdict="v"), "t.me/x", [dict(coin="IDOL", direction="long")])
+    assert "mean +0.95% net" in normal and "new: IDOL long" in normal, normal
+
+
+def test_evidence_flags_an_ambiguous_second():
+    """When two posts in one second both name the coin, say so instead of picking silently."""
+    with tempfile.TemporaryDirectory() as d:
+        root = build_root(d)
+        ts = "2026-11-19T00:34:05+00:00"
+        (root / "demo" / "posts.txt").write_text(
+            f"[{ts}] #BBB Bullish\n[{ts}] #BBB Bullish again\n")
+        (root / "demo" / "calls.json").write_text(json.dumps([
+            dict(coin="BBB", direction="long", called_at=ts, source="t.me/x")]))
+        cf.seed([], root=root)
+        rows = cf.read_jsonl(root / "forward" / "calls.jsonl")
+    assert len(rows) == 1 and rows[0]["evidence_ambiguous"] is True, rows
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

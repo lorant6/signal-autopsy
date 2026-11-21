@@ -77,24 +77,48 @@ def parse_posts(raw: str) -> list[dict]:
     return sorted(out, key=lambda p: p["post_id"])
 
 
-def read_jsonl(path: Path) -> list[dict]:
+def read_jsonl(path: Path, bad: list[int] | None = None) -> list[dict]:
+    """Parse a JSONL file, skipping unreadable lines.
+
+    Pass `bad` to collect the line numbers that did not parse: a caller about to rewrite the
+    file must know it is holding an incomplete picture, or it will delete what it could not read.
+    """
     if not path.exists():
         return []
     rows = []
-    for line in path.read_text().splitlines():
+    for n, line in enumerate(path.read_text().splitlines(), start=1):
         line = line.strip()
         if not line:
             continue
         try:
             rows.append(json.loads(line))
         except json.JSONDecodeError:
+            if bad is not None:
+                bad.append(n)
             continue                       # a torn line must not poison the whole history
     return rows
 
 
+def _ends_with_newline(path: Path) -> bool:
+    with path.open("rb") as f:
+        f.seek(-1, os.SEEK_END)
+        return f.read(1) == b"\n"
+
+
 def append_jsonl(path: Path, rows: list[dict]) -> None:
+    """Append rows without gluing them to a torn last line.
+
+    A crash mid-write leaves a partial line with no trailing newline; appending straight onto it
+    fuses the fragment and the new record into one unparseable line, losing the new row too. The
+    torn line is left in place as its own unreadable line, where read_jsonl(bad=...) reports it.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
+    stitch = path.exists() and path.stat().st_size > 0 and not _ends_with_newline(path)
     with path.open("a") as f:
+        if stitch:
+            print(f"forward: {path.name} does not end in a newline (torn write?) — "
+                  f"starting a fresh line", file=sys.stderr)
+            f.write("\n")
         for r in rows:
             f.write(json.dumps(r, sort_keys=True) + "\n")
 
@@ -146,40 +170,80 @@ def _norm_ts(value: str) -> str:
         return str(value)
 
 
-def _evidence_lines(root: Path) -> dict[str, str]:
-    """timestamp -> the post line a call was read from.
+def _evidence_lines(root: Path) -> dict[str, list[str]]:
+    """timestamp -> every post line published at that instant.
 
     Posts already in forward/posts.jsonl win over the demo scrape: they are what the channel
     published, in the form it published it. The demo file is the fallback because the 19 Nov
     posts had scrolled off the t.me/s preview page before the book was seeded.
+
+    A timestamp is kept as a list, not a single line: message timestamps carry whole seconds, so
+    two different posts can share one, and picking the first would attach one post's text to a
+    call read from the other.
     """
-    index: dict[str, str] = {}
+    index: dict[str, list[str]] = {}
     for p in read_jsonl(root / "forward" / "posts.jsonl"):
         if p.get("ts") and p.get("text"):
-            index.setdefault(_norm_ts(p["ts"]), f"[{p['ts']}] {p['text']}")
+            index.setdefault(_norm_ts(p["ts"]), []).append(f"[{p['ts']}] {p['text']}")
     demo = root / "demo" / "posts.txt"
     if demo.exists():
         for line in demo.read_text().splitlines():
             m = re.match(r"\[([^\]]+)\]\s*(\S.*)", line.strip())
-            if m:
-                index.setdefault(_norm_ts(m.group(1)), line.strip())
+            if m and not any(line.strip() == seen for seen in index.get(_norm_ts(m.group(1)), [])):
+                index.setdefault(_norm_ts(m.group(1)), []).append(line.strip())
     return index
 
 
-def _backfill_evidence(root: Path, evidence: dict[str, str]) -> int:
+def _mentions(line: str, coin: str) -> bool:
+    """Does this post line name the ticker at all? `#IRYS`, `IRYS`, `IRYSUSDT` all count."""
+    c = coin.strip().upper()
+    if not c:
+        return False
+    return bool(re.search(rf"(?<![A-Z0-9])#?{re.escape(c)}(?:USDT|USDC|PERP)?(?![A-Z0-9])",
+                          line.upper()))
+
+
+def _pick_evidence(index: dict[str, list[str]], when: str,
+                   coin: str) -> tuple[str | None, bool]:
+    """The post line a call was read from, and whether the choice had to be guessed.
+
+    Between two posts in the same second, the one that names the ticker wins. When several
+    name it, or none does, the first is returned and flagged ambiguous — an honest "two posts
+    share this second" beats silently passing off the wrong one as exact provenance.
+    """
+    candidates = index.get(_norm_ts(when)) or []
+    if not candidates:
+        return None, False
+    named = [line for line in candidates if _mentions(line, coin)]
+    if len(named) == 1:
+        return named[0], False
+    if len(named) > 1:
+        return named[0], True
+    return candidates[0], len(candidates) > 1
+
+
+def _backfill_evidence(root: Path, evidence: dict[str, list[str]]) -> int:
     """Fill in rows already in the book that were seeded before evidence was carried.
 
     Seeding twice is a no-op by design, so without this an old book keeps its empty evidence
-    fields forever and the repair only ever applies to rows that do not exist yet.
+    fields forever and the repair only ever applies to rows that do not exist yet. A file with
+    an unreadable line is left alone: rewriting from what parsed would delete the rest.
     """
     path = root / "forward" / "calls.jsonl"
-    rows = read_jsonl(path)
+    bad: list[int] = []
+    rows = read_jsonl(path, bad=bad)
+    if bad:
+        print(f"forward: {len(bad)} unreadable line(s) in {path.name} (first at line {bad[0]}) — "
+              f"refusing to rewrite it, repair the file by hand first", file=sys.stderr)
+        return 0
     fixed = 0
     for r in rows:
         if not r.get("evidence"):
-            line = evidence.get(_norm_ts(r.get("called_at", "")))
+            line, ambiguous = _pick_evidence(evidence, r.get("called_at", ""), r.get("coin", ""))
             if line:
                 r["evidence"] = line[:300]
+                if ambiguous:
+                    r["evidence_ambiguous"] = True
                 fixed += 1
     if fixed:
         tmp = path.with_suffix(".tmp")
@@ -206,24 +270,56 @@ def seed(scraped: list[dict], root: Path = ROOT) -> None:
     have_calls = {(c["coin"], c["direction"], c["called_at"]) for c in read_jsonl(calls_path)}
     rows: list[dict] = []
     unresolved: list[str] = []
+    ambiguous = 0
     for c in json.loads((root / "demo" / "calls.json").read_text()):
         key = (c["coin"], c["direction"], c["called_at"])
         if key in have_calls:
             continue
-        line = evidence.get(_norm_ts(c["called_at"]))
+        line, guessy = _pick_evidence(evidence, c["called_at"], c["coin"])
         if not line:
             unresolved.append(c["called_at"])
             continue
         have_calls.add(key)
-        rows.append(dict(coin=c["coin"], direction=c["direction"], called_at=c["called_at"],
-                         evidence=line[:300], source=c.get("source") or SOURCE, seed=True,
-                         added_at=datetime.now(timezone.utc).isoformat(timespec="seconds")))
+        row = dict(coin=c["coin"], direction=c["direction"], called_at=c["called_at"],
+                   evidence=line[:300], source=c.get("source") or SOURCE, seed=True,
+                   added_at=datetime.now(timezone.utc).isoformat(timespec="seconds"))
+        if guessy:
+            row["evidence_ambiguous"] = True
+            ambiguous += 1
+        rows.append(row)
     append_jsonl(calls_path, rows)
     print(f"seeded {len(rows)} call(s) with their post line, {len(scraped)} post id(s)"
           + (f", backfilled {backfilled}" if backfilled else "")
+          + (f", {ambiguous} ambiguous timestamp(s)" if ambiguous else "")
           + (f", dropped {len(unresolved)} with no matching post" if unresolved else ""))
     for ts in unresolved:
         print(f"  dropped (no post line to point at): {ts}", file=sys.stderr)
+
+
+def summary_text(summary: dict, source: str, new_calls: list[dict] | None = None) -> str:
+    """The daily message. A day where nothing settled must say so, not crash on a missing mean.
+
+    `report()` returns only n/failed/pending/note when no call could be scored; formatting the
+    mean of an empty sample raises KeyError and used to kill the cycle after the ledger was
+    written but before summary.txt was updated.
+    """
+    head = f"Signal Autopsy — forward book · {source}\n"
+    if not summary.get("n"):
+        return (head
+                + f"nothing settled yet: {summary.get('pending', 0)} open · "
+                  f"{summary.get('failed', 0)} unpriceable\n"
+                + (summary.get("note") or "no call could be scored"))
+    text = (head
+            + f"{summary['n']} scored · {summary.get('pending', 0)} open · "
+              f"{summary.get('failed', 0)} unpriceable\n"
+            + f"mean {summary['net_mean']:+.2f}% net · median {summary['median']:+.2f}% · "
+              f"sd {summary['stdev']:.2f} · t {summary['t_stat']:.2f}\n"
+            + f"{summary['wins']}/{summary['n']} profitable · pre-call drift "
+              f"{summary['pre_move_mean']:+.2f}%\n"
+            + f"VERDICT: {summary['verdict']}")
+    if new_calls:
+        text += "\n\nnew: " + ", ".join(f"{c['coin']} {c['direction']}" for c in new_calls[:8])
+    return text
 
 
 def main() -> int:
@@ -298,15 +394,7 @@ def main() -> int:
                 prev[k.strip()] = v.strip()
     settled_now = int(summary.get("n", 0)) - int(prev.get("n", 0) or 0)
 
-    text = (f"Signal Autopsy — forward book · {SOURCE}\n"
-            f"{summary['n']} scored · {summary['pending']} open · {summary['failed']} unpriceable\n"
-            f"mean {summary['net_mean']:+.2f}% net · median {summary['median']:+.2f}% · "
-            f"sd {summary['stdev']:.2f} · t {summary['t_stat']:.2f}\n"
-            f"{summary['wins']}/{summary['n']} profitable · pre-call drift "
-            f"{summary['pre_move_mean']:+.2f}%\n"
-            f"VERDICT: {summary['verdict']}")
-    if new_calls:
-        text += "\n\nnew: " + ", ".join(f"{c['coin']} {c['direction']}" for c in new_calls[:8])
+    text = summary_text(summary, SOURCE, new_calls)
 
     SUMMARY.write_text("\n".join(f"{k} = {v}" for k, v in summary.items()) + "\n\n" + text + "\n")
 
@@ -318,7 +406,7 @@ def main() -> int:
             print(f"forward: sent to telegram, message {msg_id}")
     else:
         print(f"forward: {len(calls)} calls, nothing new, no message "
-              f"(n={summary['n']} scored)")
+              f"(n={summary.get('n', 0)} scored)")
     return 0
 
 
