@@ -42,8 +42,10 @@ move in the hour BEFORE the call, in the direction claimed: mean +4.24% (7 of 11
 
 Five findings that matter:
 
-1. **The mean is carried by micro-caps.** IRYS alone pays +23.9% net on one call; the median
-   call earns +0.20%. Judge a channel by the median or you are judging its best trade.
+1. **The mean is one coin — remove IRYS and the book is negative.** IRYS pays +23.9% net on a
+   single call and +8.39% across its four; the other seven calls average −3.31% (t = −1.16).
+   What looks like a small positive edge is one micro-cap on one day, and it does not survive
+   being removed. Judge the median, and then judge the book again without its best ticker.
 2. **t = 0.28 is not an edge.** At n=11 the tool refuses to call it one.
 3. **The calls arrive after the move.** +4.24% of the move has already happened in the hour
    before the call is posted — the difference between a signal and a broadcast.
@@ -57,6 +59,33 @@ Five findings that matter:
 The tool reports the calls it cannot score and the calls whose horizon has not finished as
 separate lines. Deleting them would be the easiest way to make the numbers look good, which is
 exactly why the output refuses to.
+
+### The same eleven calls, per coin
+
+| coin | calls | mean net | median net | t |
+|---|---|---|---|---|
+| BTC | 3 | −0.58% | +0.20% | −0.60 |
+| IRYS | 4 | **+8.39%** | +9.17% | +1.21 |
+| ICNT | 2 | −9.92% | −9.92% | −0.98 |
+| EVAA | 1 | +1.30% | +1.30% | — |
+| ETH | 1 | −2.87% | −2.87% | — |
+
+**Effective n.** Those eleven rows are five coins. Four of them are IRYS longs posted at 00:34,
+00:53, 01:20 and 04:07 on 19 November, and their 24-hour windows overlap almost completely: one
+bet on one micro-cap, booked four times. The t-statistic above assumes eleven independent
+observations and has, at most, five — so it overstates even the little it claims. Collapsed to
+one observation per coin the mean is **−0.73% (t = −0.25, n = 5)**. The tool still prints t
+because a judge will ask for it; the honest reading of "positive but indistinguishable from
+luck" is weaker than that.
+
+**The cost assumption is flat on purpose, and it flatters the trades that matter.** 11bp fee
+plus 30bp slippage per side is 0.71% round trip, applied identically to BTC at $62k and to IRYS
+at $0.019. On a thin listing CMC's price is an aggregate across venues, and the price you could
+actually have taken sits below it — so the four IRYS rows, the rows that carry the mean, are
+exactly where the assumption is weakest. `--slippage-x 2` re-runs the same arithmetic at double
+slippage: the mean falls from +0.95% to **+0.35%** and the median to **−0.40%**; at 3x it is
+−0.25%. The flat number is reported because it is the one a rounded-off screenshot would show,
+and the flag exists so nobody has to trust it.
 
 ## Demo
 
@@ -77,6 +106,10 @@ signal_autopsy score calls.json --horizon 24 --fee-bps 11 --slippage-bps 30
 5. Reports mean, median, hit rate, t-statistic, and the pre-call drift
 
 Pre-call drift is the field most tools omit: it separates *"predicted"* from *"described"*.
+
+`--slippage-x 2` repeats the same arithmetic at double slippage and prints the mean, median and
+t beside the flat-cost result — a sensitivity check on the cost assumption, not a different
+model.
 
 ## MCP server
 
@@ -114,7 +147,8 @@ EXTRACT_LIVE=1 python3 test_extract.py    # scores extraction against demo/posts
 * rejections are returned with reasons — the model cannot make a call appear by asserting it
 
 On the 25-post scrape in `demo/posts.txt`, against hand labels in `demo/posts.labels.json`:
-**17 of 18 calls recovered, 0 invented**, in one turn (~22k tokens). Missed: a post that says
+**17 of 18 calls recovered, 0 invented**, in one turn (12.5k tokens; re-run from a clean cache
+on 21 Nov). Missed: a post that says
 *"Shorting BTC at top … Today bought BTC at 55555"* — it contradicts itself, and a tool that
 guesses there would be lying.
 
@@ -136,10 +170,17 @@ python3 collect_forward.py            # one daily cycle; silent unless something
 ```
 
 It is seeded on 21 Nov 2026 with the 17 calls above, so the book starts with a real n instead of
-an empty ledger, and it only grows from there. Two rules keep it from flattering itself: a post
+an empty ledger, and it only grows from there. Each seeded row carries the post line it was read
+from, so a reader can check a call against the channel rather than against our say-so; a call
+whose post cannot be found in either scrape is dropped and counted instead of being booked with
+blank evidence. Two rules keep it from flattering itself: a post
 is never read twice (post ids are recorded), and a batch whose extraction fails is retried next
 cycle rather than silently dropped. The daily message fires only when a call was added or a
 position settled — a daily "nothing happened" trains you to ignore the day that matters.
+
+As of the 21 Nov snapshot the book reads **11 scored · 4 open · 3 unpriceable** (18 calls);
+`forward/summary.txt` is the authoritative figure and is rewritten each cycle, so read it rather
+than this paragraph.
 
 ## Install
 
@@ -147,6 +188,12 @@ position settled — a daily "nothing happened" trains you to ignore the day tha
 pip install -r requirements.txt
 export CMC_API_KEY=...        # never in a file that is committed
 python signal_autopsy.py score demo/calls.json --horizon 24
+```
+
+The tests run offline — no key, no network, no model — and CI runs exactly this on every push:
+
+```bash
+python3 test_math.py && python3 test_forward.py && python3 test_extract.py
 ```
 
 The scoring path needs nothing but Python 3.10+ and the key. The reading step is optional and
