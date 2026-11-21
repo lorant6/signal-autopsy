@@ -45,6 +45,19 @@ TOOLS = [
             "slippage_bps": {"type": "number", "default": 30},
         }, "required": ["calls"]},
     },
+    {
+        "name": "extract_calls",
+        "description": ("Turn a raw channel scrape into validated calls (coin, direction, "
+                        "called_at). A schema-constrained model does the reading step only; every "
+                        "field is validated and rejections come back with reasons. Cached by "
+                        "content hash, so repeating a call costs no quota."),
+        "inputSchema": {"type": "object", "properties": {
+            "text": {"type": "string",
+                     "description": "raw posts, one per line, each prefixed with its timestamp"},
+            "source": {"type": "string", "description": "label stored with every call"},
+            "model": {"type": "string", "description": "override the extraction model"},
+        }, "required": ["text"]},
+    },
 ]
 
 
@@ -72,6 +85,11 @@ def call_tool(name: str, args: dict) -> dict:
         rows = sa.score(calls, float(args.get("horizon_hours", 24)),
                         float(args.get("fee_bps", 11)), float(args.get("slippage_bps", 30)))
         return dict(summary=sa.report(rows, float(args.get("horizon_hours", 24))), calls=rows)
+    if name == "extract_calls":
+        import extract_calls as ex
+        payload = ex.extract(str(args["text"]), source=str(args.get("source") or ""),
+                             model=str(args.get("model") or ex.MODEL))
+        return {k: payload[k] for k in ("calls", "rejected", "duplicates")} | {"meta": payload["meta"]}
     raise ValueError(f"unknown tool {name}")
 
 

@@ -1,0 +1,29 @@
+channel: t.me/binance_futures
+scrape: public preview, message timestamps in UTC, text verbatim
+format: [post timestamp] post text
+
+[2026-11-18T20:15:11+00:00] #BTC Short
+[2026-11-19T00:33:23+00:00] #BTC Short
+[2026-11-19T00:34:05+00:00] #IRYS Bullish
+[2026-11-19T00:53:19+00:00] #IRYS Bullish
+[2026-11-19T00:59:15+00:00] #CROSS BULLISH
+[2026-11-19T01:01:55+00:00] #CROSS BULLISH
+[2026-11-19T01:20:12+00:00] #IRYS Bullish
+[2026-11-19T02:01:35+00:00] #CROSS BULLISH
+[2026-11-19T04:07:55+00:00] #IRYS Bullish
+[2026-11-19T08:05:07+00:00] Few in wave 3 (main wave) EVAA ICNT PIEVERSE ...  Few in wave 5 (sudden pump and retrace fully) from old legend pumps.
+[2026-11-19T08:05:07+00:00] Few in wave 3 (main wave) EVAA ICNT PIEVERSE ...  Few in wave 5 (sudden pump and retrace fully) from old legend pumps.
+[2026-11-19T16:38:57+00:00] #ICNT BULLISH
+[2026-11-20T08:40:35+00:00] #ICNT BULLISH
+[2026-11-20T12:51:43+00:00] Buy more #EVAA
+[2026-11-20T16:40:35+00:00] #ETH SHORT
+[2026-11-20T18:13:31+00:00] #BTC Below 40k by the end of December  SHORT.
+[2026-11-21T01:22:39+00:00] #EVAA BULLISH MORE  TP 20-200-500
+[2026-11-21T04:13:29+00:00] Close #BTC short
+[2026-11-21T05:01:17+00:00] Shorting BTC at top Chasing +% in EVAA along the way BTC down  Today bought BTC at 55555  We r not the same
+[2026-11-21T05:01:17+00:00] Shorting BTC at top Chasing +% in EVAA along the way BTC down  Today bought BTC at 55555  We r not the same
+[2026-11-21T06:56:17+00:00] Buying Bless this week is like buying EVAA last weekend  X4 on the table
+[2026-11-21T07:25:04+00:00] There are 2 types of legend pumps:  1/ Check TUT STO IRYS => A fast & furious pump in few days only.  2/ CHeck LAB AKE BTW... => Zig Zag with many legs and finished x100 x300 from the bottom.
+[2026-11-21T08:36:23+00:00] The macro bull cycle began in 2015 and ended in 2025. Imagine price will move in a very wide range for the next 5-10 years.  ETFs hold BTC and ETH on your behalf for ten years, charging annual fees al
+[2026-11-21T08:36:23+00:00] The macro bull cycle began in 2015 and ended in 2025. Imagine price will move in a very wide range for the next 5-10 years.  ETFs hold BTC and ETH on your behalf for ten years, charging annual fees al
+[2026-11-21T14:16:50+00:00] Buying dip #ICNT

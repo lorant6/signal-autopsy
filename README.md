@@ -82,8 +82,41 @@ mid-conversation:
 {"mcpServers": {"signal-autopsy": {"command": "python", "args": ["mcp_server.py"]}}}
 ```
 
-Tools: `resolve_coin`, `quote_at`, `score_calls`. Verified against a live key: the handshake and
-`tools/list` return without a network error, and each tool returns the same numbers as the CLI.
+Tools: `resolve_coin`, `quote_at`, `score_calls`, `extract_calls`. Verified against a live key: the
+handshake and `tools/list` return without a network error, and each tool returns the same numbers
+as the CLI.
+
+## The reading step (where the model is)
+
+Pricing and scoring are deterministic arithmetic — a judge can re-run them and get the same
+ledger. The one step that is not computable is reading the channel: a post says
+`#IRYS Bullish` and something has to decide that this is a long on IRYS at `00:34:05Z`, that the
+next post is commentary, and that `Close #BTC short` is an exit rather than an entry.
+
+`extract_calls.py` does that with a schema-constrained model and then treats its answer like
+something typed by a stranger:
+
+```bash
+python3 extract_calls.py demo/posts.txt --source t.me/binance_futures -o calls.json
+EXTRACT_LIVE=1 python3 test_extract.py    # scores extraction against demo/posts.labels.json
+```
+
+* direction must resolve to `long`/`short` (`bullish`, `bear`, `buy`, `shorting` are mapped;
+  anything else is rejected, never guessed)
+* the timestamp must parse as ISO-8601 **with** a timezone
+* tickers are normalised (`#IRYSUSDT` → `IRYS`) and optionally checked against CMC's map
+* duplicates collapse, and every accepted call keeps the post line it came from
+* rejections are returned with reasons — the model cannot make a call appear by asserting it
+
+On the 25-post scrape in `demo/posts.txt`, against hand labels in `demo/posts.labels.json`:
+**17 of 18 calls recovered, 0 invented**, in one turn (~22k tokens). Missed: a post that says
+*"Shorting BTC at top … Today bought BTC at 55555"* — it contradicts itself, and a tool that
+guesses there would be lying.
+
+The model is the only non-deterministic component, so its output is cached by content hash
+(input + source + model + schema): a demo, a re-score or a test costs no quota, and the same
+posts reproduce the same ledger. No login is needed for the deterministic path — only
+`extract_calls` requires the CLI.
 
 ## Install
 
@@ -91,6 +124,13 @@ Tools: `resolve_coin`, `quote_at`, `score_calls`. Verified against a live key: t
 pip install -r requirements.txt
 export CMC_API_KEY=...        # never in a file that is committed
 python signal_autopsy.py score demo/calls.json --horizon 24
+```
+
+The scoring path needs nothing but Python 3.10+ and the key. The reading step is optional and
+needs the Antigravity CLI (`agy`, installed at `~/.local/bin/agy`, logged in once):
+
+```bash
+python3 extract_calls.py demo/posts.txt --source t.me/binance_futures -o demo/calls.json
 ```
 
 ## Calls file format

@@ -1,0 +1,30 @@
+{
+ "_note": "Human labels for every post in posts.txt, one entry per line, in file order. 'call' is the entry the post makes, or null when the post is commentary, a duplicate repost, or an EXIT. This is the ground truth the extraction test scores against; it is deliberately not demo/calls.json, which was parsed by hand and counts several commentary posts as calls.",
+ "posts": [
+  {"ts": "2026-11-18T20:15:11+00:00", "text": "#BTC Short", "call": ["BTC", "short"], "why": "explicit"},
+  {"ts": "2026-11-19T00:33:23+00:00", "text": "#BTC Short", "call": ["BTC", "short"], "why": "explicit"},
+  {"ts": "2026-11-19T00:34:05+00:00", "text": "#IRYS Bullish", "call": ["IRYS", "long"], "why": "explicit"},
+  {"ts": "2026-11-19T00:53:19+00:00", "text": "#IRYS Bullish", "call": ["IRYS", "long"], "why": "explicit"},
+  {"ts": "2026-11-19T00:59:15+00:00", "text": "#CROSS BULLISH", "call": ["CROSS", "long"], "why": "explicit"},
+  {"ts": "2026-11-19T01:01:55+00:00", "text": "#CROSS BULLISH", "call": ["CROSS", "long"], "why": "explicit"},
+  {"ts": "2026-11-19T01:20:12+00:00", "text": "#IRYS Bullish", "call": ["IRYS", "long"], "why": "explicit"},
+  {"ts": "2026-11-19T02:01:35+00:00", "text": "#CROSS BULLISH", "call": ["CROSS", "long"], "why": "explicit"},
+  {"ts": "2026-11-19T04:07:55+00:00", "text": "#IRYS Bullish", "call": ["IRYS", "long"], "why": "explicit"},
+  {"ts": "2026-11-19T08:05:07+00:00", "text": "Few in wave 3 (main wave) EVAA ICNT PIEVERSE ...", "call": null, "why": "coin list, no direction"},
+  {"ts": "2026-11-19T08:05:07+00:00", "text": "Few in wave 5 (sudden pump and retrace fully) from old legend pumps.", "call": null, "why": "commentary, duplicate repost"},
+  {"ts": "2026-11-19T16:38:57+00:00", "text": "#ICNT BULLISH", "call": ["ICNT", "long"], "why": "explicit"},
+  {"ts": "2026-11-20T08:40:35+00:00", "text": "#ICNT BULLISH", "call": ["ICNT", "long"], "why": "explicit"},
+  {"ts": "2026-11-20T12:51:43+00:00", "text": "Buy more #EVAA", "call": ["EVAA", "long"], "why": "'buy more' is a long entry in prose"},
+  {"ts": "2026-11-20T16:40:35+00:00", "text": "#ETH SHORT", "call": ["ETH", "short"], "why": "explicit"},
+  {"ts": "2026-11-20T18:13:31+00:00", "text": "#BTC Below 40k by the end of December SHORT.", "call": ["BTC", "short"], "why": "direction stated as SHORT"},
+  {"ts": "2026-11-21T01:22:39+00:00", "text": "#EVAA BULLISH MORE TP 20-200-500", "call": ["EVAA", "long"], "why": "explicit"},
+  {"ts": "2026-11-21T04:13:29+00:00", "text": "Close #BTC short", "call": null, "why": "EXIT, not an entry — scoring it as a long entry inverts the position"},
+  {"ts": "2026-11-21T05:01:17+00:00", "text": "Shorting BTC at top ...", "call": ["BTC", "short"], "why": "prose call, direction explicit"},
+  {"ts": "2026-11-21T05:01:17+00:00", "text": "Shorting BTC at top ... (duplicate repost)", "call": null, "why": "duplicate repost of the same call"},
+  {"ts": "2026-11-21T06:56:17+00:00", "text": "Buying Bless this week is like buying EVAA last weekend X4 on the table", "call": ["BLESS", "long"], "why": "prose call, no # ticker"},
+  {"ts": "2026-11-21T07:25:04+00:00", "text": "There are 2 types of legend pumps ...", "call": null, "why": "commentary, tickers as examples"},
+  {"ts": "2026-11-21T08:36:23+00:00", "text": "The macro bull cycle began in 2015 and ended in 2025 ...", "call": null, "why": "macro commentary, BTC/ETH mentioned without direction"},
+  {"ts": "2026-11-21T08:36:23+00:00", "text": "The macro bull cycle ... (duplicate repost)", "call": null, "why": "commentary, duplicate repost"},
+  {"ts": "2026-11-21T14:16:50+00:00", "text": "Buying dip #ICNT", "call": ["ICNT", "long"], "why": "'buying dip' is a long entry"}
+ ]
+}
