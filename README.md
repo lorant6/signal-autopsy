@@ -24,17 +24,29 @@ an opinion.
 
 ## Why this is not a toy
 
-The same engine, run by hand on a live Telegram channel, produced these numbers:
+Run against 24 real calls scraped from a live Telegram channel, priced by CMC on 21 Nov 2026:
 
 ```
-15 calls · 12 settled at 24h
-mean +5.54%   median +1.00%   sd 12.0   t = 1.60
-move in the hour BEFORE the call, in the direction claimed: mean +4.86% (11 of 15)
+24 calls in the file · 10 settled at 24h · 11 still open (horizon not elapsed) · 3 unscoreable
+
+mean +6.62% net   median +2.56%   sd 15.52   t = 1.35
+8/10 profitable after fees and slippage
+move in the hour BEFORE the call, in the direction claimed: mean +5.51% (7 of 10)
 ```
 
-Two findings that matter. The mean is carried by two micro-caps while the median call earns
-about 1% — and after 0.11% fees and realistic slippage, roughly nothing. And the calls arrive
-**after** the move has started, which is the difference between a signal and a broadcast.
+Four findings that matter:
+
+1. **The mean is carried by micro-caps.** IRYS alone pays +23.9% net on one call; the median
+   call earns +2.56%. Judge a channel by the median or you are judging its best trade.
+2. **t = 1.35 is not an edge.** At n=10 the tool refuses to call it one.
+3. **The calls arrive after the move.** +5.51% of the move has already happened in the hour
+   before the call is posted — the difference between a signal and a broadcast.
+4. **Three calls are unpriceable at all.** CROSS is delisted on CMC, so the tool says so instead
+   of quietly dropping it from the sample and flattering the average.
+
+The tool reports the calls it cannot score and the calls whose horizon has not finished as
+separate lines. Deleting them would be the easiest way to make the numbers look good, which is
+exactly why the output refuses to.
 
 ## What it does
 
@@ -59,7 +71,8 @@ mid-conversation:
 {"mcpServers": {"signal-autopsy": {"command": "python", "args": ["mcp_server.py"]}}}
 ```
 
-Tools: `resolve_coin`, `quote_at`, `score_calls`, `score_source_file`.
+Tools: `resolve_coin`, `quote_at`, `score_calls`. Verified against a live key: the handshake and
+`tools/list` return without a network error, and each tool returns the same numbers as the CLI.
 
 ## Install
 
@@ -91,8 +104,12 @@ not when it became convenient to measure.
 
 ## Where it got in the way
 
-- `quotes/historical` is not on the Basic tier, so a public demo needs an event-window key
-  rather than a free one.
+- `quotes/historical` at `interval=1h` works on a free key, but a single-id request returns the
+  coin object at `data` while a multi-id request nests it under the id string. Assuming one shape
+  makes every call look unscoreable with a 404 — a real bug this project hit and now handles.
+- A request whose window ends in the future is rejected by CMC with a 400 rather than an empty
+  result. The client now refuses future instants explicitly, and the scorer marks such calls
+  *pending* instead of failed, so an unfinished holding period never colours the verdict.
 - Historical quotes are bucketed per minute/day; a call at `00:34:07` resolves to the nearest
   bucket, which is honest but worth stating in the output rather than hiding.
 - Micro-cap prices on CMC are aggregates across venues. Where a coin trades on one thin

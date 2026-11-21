@@ -45,7 +45,17 @@ def load_calls(path: str) -> list[dict]:
 def score(calls: list[dict], horizon_h: float, fee_bps: float, slippage_bps: float,
           pre_h: float = 1.0) -> list[dict]:
     rows = []
+    now = datetime.now(timezone.utc)
     for c in calls:
+        # A call whose holding period has not finished cannot be scored yet. Calling that an
+        # error would understate the sample; calling it a win would be a lie. It is pending.
+        if c["called_at"] + timedelta(hours=horizon_h) > now:
+            rows.append(dict(coin=c["coin"], called_at=c["called_at"].isoformat(timespec="seconds"),
+                             direction=c["direction"], pending=True,
+                             note=f"horizon not elapsed (exit "
+                                  f"{(c['called_at'] + timedelta(hours=horizon_h)).isoformat(timespec='seconds')})",
+                             source=c.get("source", "")))
+            continue
         try:
             ident = cmc.resolve_coin(c["coin"])
             entry = cmc.quote_at(ident["id"], c["called_at"])
@@ -73,8 +83,9 @@ def score(calls: list[dict], horizon_h: float, fee_bps: float, slippage_bps: flo
 def report(rows: list[dict], horizon_h: float) -> dict:
     ok = [r for r in rows if "net_pct" in r]
     failed = [r for r in rows if "error" in r]
+    pending = [r for r in rows if r.get("pending")]
     if not ok:
-        return dict(n=0, failed=len(failed), note="no call could be scored")
+        return dict(n=0, failed=len(failed), pending=len(pending), note="no call could be scored")
 
     net = [r["net_pct"] for r in ok]
     gross = [r["gross_pct"] for r in ok]
@@ -82,7 +93,7 @@ def report(rows: list[dict], horizon_h: float) -> dict:
     mean, sd = st.mean(net), (st.stdev(net) if len(net) > 1 else 0.0)
     t = mean / (sd / len(net) ** 0.5) if sd and len(net) > 1 else 0.0
     return dict(
-        n=len(ok), failed=len(failed), horizon_h=horizon_h,
+        n=len(ok), failed=len(failed), pending=len(pending), horizon_h=horizon_h,
         gross_mean=round(st.mean(gross), 2), net_mean=round(mean, 2),
         median=round(st.median(net), 2), stdev=round(sd, 2), t_stat=round(t, 2),
         wins=sum(1 for x in net if x > 0), hit_rate=round(100 * sum(1 for x in net if x > 0) / len(net), 1),
@@ -122,7 +133,9 @@ def main() -> None:
         if a.ledger:
             import csv
             with open(a.ledger, "w", newline="") as fh:
-                cols = [k for k in rows[0] if k != "error"] if rows else []
+                cols = ["coin", "cmc_id", "direction", "called_at", "entry", "exit", "bucket_lag_s",
+                        "gross_pct", "cost_pct", "net_pct", "pre_move_pct", "source",
+                        "pending", "note", "error"]
                 w = csv.DictWriter(fh, fieldnames=cols, extrasaction="ignore")
                 w.writeheader()
                 for r in rows:
@@ -131,6 +144,8 @@ def main() -> None:
             print(json.dumps(dict(summary=summary, calls=rows), indent=2))
             return
         print(f"\n{summary['n']} calls scored over {a.horizon:g}h"
+              + (f" · {summary.get('pending', 0)} still open (horizon not elapsed)"
+                 if summary.get("pending") else "")
               + (f" · {summary['failed']} unscoreable" if summary.get("failed") else ""))
         if summary["n"]:
             print(f"  gross {summary['gross_mean']:+.2f}%  ·  after costs {summary['net_mean']:+.2f}%"

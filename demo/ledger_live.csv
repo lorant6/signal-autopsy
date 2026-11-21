@@ -1,0 +1,25 @@
+coin,cmc_id,direction,called_at,entry,exit,bucket_lag_s,gross_pct,cost_pct,net_pct,pre_move_pct,source,pending,note,error
+BTC,1,short,2026-11-18T20:15:11+00:00,62691.62704363,62118.03847789,11,0.91,0.71,0.2,0.13,t.me/binance_futures,,,
+BTC,1,short,2026-11-19T00:33:23+00:00,62816.44912369,62015.15586387,203,1.28,0.71,0.57,-0.19,t.me/binance_futures,,,
+IRYS,38978,long,2026-11-19T00:34:05+00:00,0.01910709,0.02381027,245,24.61,0.71,23.9,7.44,t.me/binance_futures,,,
+IRYS,38978,long,2026-11-19T00:53:19+00:00,0.02067867,0.02367742,199,14.5,0.71,13.79,17.84,t.me/binance_futures,,,
+CROSS,,,2026-11-19T00:59:15+00:00,,,,,,,,,,,CMC API 404: coin is inactive on CMC (delisted / no market) — its calls cannot be priced
+CROSS,,,2026-11-19T01:01:55+00:00,,,,,,,,,,,CMC API 404: coin is inactive on CMC (delisted / no market) — its calls cannot be priced
+IRYS,38978,long,2026-11-19T01:20:12+00:00,0.02338959,0.02461929,12,5.26,0.71,4.55,24.2,t.me/binance_futures,,,
+CROSS,,,2026-11-19T02:01:35+00:00,,,,,,,,,,,CMC API 404: coin is inactive on CMC (delisted / no market) — its calls cannot be priced
+IRYS,38978,long,2026-11-19T04:07:55+00:00,0.02370435,0.02181922,175,-7.95,0.71,-8.66,-3.81,t.me/binance_futures,,,
+EVAA,38376,long,2026-11-19T08:05:07+00:00,4.20135643,5.4203302,7,29.01,0.71,28.3,3.21,t.me/binance_futures,,,
+ICNT,37070,long,2026-11-19T08:05:07+00:00,0.36655024,0.45485483,7,24.09,0.71,23.38,6.04,t.me/binance_futures,,,
+ICNT,37070,long,2026-11-19T16:38:57+00:00,0.40578279,0.40940762,237,0.89,0.71,0.18,4.75,t.me/binance_futures,,,
+ICNT,37070,long,2026-11-20T08:40:35+00:00,0.4482676,0.36173728,35,-19.3,0.71,-20.01,-4.46,t.me/binance_futures,,,
+EVAA,,long,2026-11-20T12:51:43+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-21T12:51:43+00:00),
+ETH,,short,2026-11-20T16:40:35+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-21T16:40:35+00:00),
+BTC,,short,2026-11-20T18:13:31+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-21T18:13:31+00:00),
+EVAA,,long,2026-11-21T01:22:39+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-22T01:22:39+00:00),
+BTC,,short,2026-11-21T04:13:29+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-22T04:13:29+00:00),
+BTC,,long,2026-11-21T05:01:17+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-22T05:01:17+00:00),
+EVAA,,long,2026-11-21T05:01:17+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-22T05:01:17+00:00),
+EVAA,,long,2026-11-21T06:56:17+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-22T06:56:17+00:00),
+IRYS,,long,2026-11-21T07:25:04+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-22T07:25:04+00:00),
+BTC,,long,2026-11-21T08:36:23+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-22T08:36:23+00:00),
+ETH,,long,2026-11-21T08:36:23+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-22T08:36:23+00:00),

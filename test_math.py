@@ -58,6 +58,42 @@ def test_verdict_is_not_optimistic():
     assert "indistinguishable from luck" in sa.report(noisy, 24)["verdict"]
 
 
+def test_unripe_call_is_pending_not_error():
+    """A call whose 24h has not finished cannot be scored yet — and must not be called an error."""
+    def boom(*a, **k):
+        raise AssertionError("a pending call must not touch the network")
+    cmc.resolve_coin, cmc.quote_at = boom, boom
+    future = datetime.now(timezone.utc) + timedelta(hours=2)
+    rows = sa.score([dict(coin="T", direction="long", called_at=future, source="t")], 24, 11, 30)
+    assert rows[0].get("pending") is True, rows
+    assert "error" not in rows[0], rows
+    assert "net_pct" not in rows[0], "an unripe call must not be reported as a result"
+
+
+def test_counts_add_up():
+    rows = ([dict(net_pct=1.0, gross_pct=1.0, pre_move_pct=0.0)] * 5
+            + [dict(pending=True, coin="P")] * 3
+            + [dict(error="inactive")] * 2)
+    s = sa.report(rows, 24)
+    assert (s["n"], s["pending"], s["failed"]) == (5, 3, 2), s
+
+
+def test_quote_at_rejects_future_and_accepts_dict():
+    import importlib
+    importlib.reload(cmc)          # earlier tests monkeypatch cmc.quote_at; use the real one
+    def boom(*a, **k):
+        raise AssertionError("must fail before the request")
+    cmc.get = boom
+    try:
+        cmc.quote_at(1, datetime.now(timezone.utc) + timedelta(hours=1))
+    except cmc.CMCError as exc:
+        assert "past" in str(exc), exc
+    else:
+        raise AssertionError("a future instant must be rejected, not silently cached as empty")
+    assert cmc._coin_id({"id": 1027}) == 1027
+    assert cmc._coin_id("1027") == 1027
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

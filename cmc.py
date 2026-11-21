@@ -78,15 +78,30 @@ def resolve_coin(symbol: str) -> dict:
                 symbol=best.get("symbol", symbol), candidates=len(rows))
 
 
-def quote_at(coin_id: int, when: datetime, interval: str = "1h") -> dict:
+def _coin_id(coin) -> int:
+    """Accept an id int, a numeric string, or the dict resolve_coin returns."""
+    if isinstance(coin, dict):
+        coin = coin.get("id")
+    try:
+        return int(str(coin).strip())
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"quote_at needs a numeric CMC id, got {coin!r}") from exc
+
+
+def quote_at(coin_id, when: "datetime | str", interval: str = "1h") -> dict:
     """Price of a coin at (or immediately before) a UTC instant.
 
     CMC returns a window; we take the last bucket at or before `when` and say which bucket it
     was — a call at 00:34:07 priced from the 00:34 bucket is honest, and hiding it is not.
     """
+    coin_id = _coin_id(coin_id)
+    if isinstance(when, str):
+        when = datetime.fromisoformat(when.replace("Z", "+00:00"))
     when = when.astimezone(timezone.utc)
     span = 3 * 3600 if interval in ("1h", "5m", "15m", "1m") else 3 * 86400
     start = datetime.fromtimestamp(when.timestamp() - span, tz=timezone.utc)
+    if when > datetime.now(timezone.utc):
+        raise CMCError(400, f"quote_at needs an instant in the past: {when.isoformat()} is in the future")
     data = get("/v1/cryptocurrency/quotes/historical", {
         "id": coin_id,
         "time_start": start.strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -95,9 +110,21 @@ def quote_at(coin_id: int, when: datetime, interval: str = "1h") -> dict:
         "count": 100,
     }, cache_seconds=6 * 3600)
 
-    quotes = (((data.get("data") or {}).get(str(coin_id)) or {}).get("quotes")) or []
+    # For a single id, CMC returns the coin object directly ({"data": {"id":1, ..., "quotes":[...]}});
+    # for several ids it nests them under the id string. Accept both, or half the calls silently
+    # look unscoreable.
+    payload = data.get("data") or {}
+    blob = payload
+    if isinstance(payload, dict):
+        nested = payload.get(str(coin_id)) or payload.get(coin_id)
+        if isinstance(nested, dict):
+            blob = nested
+    quotes = (blob.get("quotes") if isinstance(blob, dict) else None) or []
     if not quotes:
-        raise CMCError(404, f"no historical quotes for id {coin_id} near {when.isoformat()}")
+        why = ("coin is inactive on CMC (delisted / no market) — its calls cannot be priced"
+               if isinstance(blob, dict) and blob.get("is_active") == 0
+               else f"no historical quotes for id {coin_id} near {when.isoformat()}")
+        raise CMCError(404, why)
 
     best = None
     for q in quotes:
