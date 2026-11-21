@@ -4,3 +4,6 @@ __pycache__/
 *.key
 ledger.csv
 SUBMISSION.md
+
+# the forward book's ledger is evidence, not scratch
+!forward/ledger.csv
