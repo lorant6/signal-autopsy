@@ -1,22 +1,22 @@
-n = 12
+n = 13
 failed = 3
 pending = 4
 horizon_h = 24.0
-gross_mean = 1.33
-net_mean = 0.62
-median = 0.19
-stdev = 10.78
-t_stat = 0.2
+gross_mean = 0.3
+net_mean = -0.41
+median = 0.18
+stdev = 10.97
+t_stat = -0.14
 wins = 7
-hit_rate = 58.3
-pre_move_mean = 4.0
-pre_move_positive = 8
-verdict = positive but indistinguishable from luck at n=12 (t=0.20) — keep collecting before risking anything
+hit_rate = 53.8
+pre_move_mean = 4.47
+pre_move_positive = 9
+verdict = loses money after costs — the source is not a signal, whatever the screenshots say
 
 Signal Autopsy — forward book · t.me/binance_futures
-12 scored · 4 open · 3 unpriceable
-mean +0.62% net · median +0.19% · sd 10.78 · t 0.20
-7/12 profitable · pre-call drift +4.00%
-VERDICT: positive but indistinguishable from luck at n=12 (t=0.20) — keep collecting before risking anything
+13 scored · 4 open · 3 unpriceable
+mean -0.41% net · median +0.18% · sd 10.97 · t -0.14
+7/13 profitable · pre-call drift +4.47%
+VERDICT: loses money after costs — the source is not a signal, whatever the screenshots say
 
-new: IDOL long
+new: ENSO long
