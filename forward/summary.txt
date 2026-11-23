@@ -1,20 +1,22 @@
-n = 17
+n = 19
 failed = 3
-pending = 8
+pending = 10
 horizon_h = 24.0
-gross_mean = -3.75
-net_mean = -4.46
-median = -2.52
-stdev = 16.76
-t_stat = -1.1
-wins = 7
-hit_rate = 41.2
-pre_move_mean = 3.48
-pre_move_positive = 11
+gross_mean = -2.31
+net_mean = -3.02
+median = -2.3
+stdev = 16.62
+t_stat = -0.79
+wins = 9
+hit_rate = 47.4
+pre_move_mean = 3.19
+pre_move_positive = 12
 verdict = loses money after costs — the source is not a signal, whatever the screenshots say
 
 Signal Autopsy — forward book · t.me/binance_futures
-17 scored · 8 open · 3 unpriceable
-mean -4.46% net · median -2.52% · sd 16.76 · t -1.10
-7/17 profitable · pre-call drift +3.48%
+19 scored · 10 open · 3 unpriceable
+mean -3.02% net · median -2.30% · sd 16.62 · t -0.79
+9/19 profitable · pre-call drift +3.19%
 VERDICT: loses money after costs — the source is not a signal, whatever the screenshots say
+
+new: ARIA long, BTC long, ETH short, CAP long
