@@ -18,5 +18,3 @@ Signal Autopsy — forward book · t.me/binance_futures
 mean -3.02% net · median -2.30% · sd 16.62 · t -0.79
 9/19 profitable · pre-call drift +3.19%
 VERDICT: loses money after costs — the source is not a signal, whatever the screenshots say
-
-new: ARIA long, BTC long, ETH short, CAP long
