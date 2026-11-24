@@ -50,13 +50,36 @@ def test_costs_always_applied():
     assert r["net_pct"] < 0, "a flat trade must lose the fee, not break even"
 
 
-def test_verdict_is_not_optimistic():
-    rows = [dict(net_pct=1.0, gross_pct=1.0, pre_move_pct=0.0)] * 5
-    assert "too few" in sa.report(rows, 24)["verdict"]
-    losing = [dict(net_pct=-2.0, gross_pct=-1.0, pre_move_pct=0.0)] * 20
+def test_verdict_is_symmetric():
+    """Both directions face the same bar.
+
+    The first version of this test encoded the opposite rule: a negative mean asserted "loses
+    money" at n=20 with no t-test, while a positive one needed t>2. A tool that audits other
+    people's claims cannot hold a thumb on one side of the scale, so the policy is now
+    n>=30 AND |t|>2 for either direction, and the test enforces it on both sides.
+    """
+    small = [dict(net_pct=1.0, gross_pct=1.0, pre_move_pct=0.0)] * 5
+    assert "underpowered" in sa.report(small, 24)["verdict"]
+
+    # enough trades to judge, negative and decisive -> allowed to name it
+    losing = [dict(net_pct=-1.0 if i % 2 else -3.0, gross_pct=-1.0, pre_move_pct=0.0)
+              for i in range(40)]
     assert "loses money" in sa.report(losing, 24)["verdict"]
-    noisy = [dict(net_pct=1.0 if i % 2 else -1.0, gross_pct=1.0, pre_move_pct=0.0) for i in range(20)]
-    assert "indistinguishable from luck" in sa.report(noisy, 24)["verdict"]
+
+    # same size, same decisiveness, positive -> also allowed to name it
+    winning = [dict(net_pct=1.0 if i % 2 else 3.0, gross_pct=1.0, pre_move_pct=0.0)
+               for i in range(40)]
+    assert "positive and statistically suggestive" in sa.report(winning, 24)["verdict"]
+
+    # a losing mean that is inside the noise band must NOT be called a loss
+    small_losing = [dict(net_pct=-2.0, gross_pct=-1.0, pre_move_pct=0.0)] * 20
+    v = sa.report(small_losing, 24)["verdict"]
+    assert "loses money" not in v and "underpowered" in v, v
+
+    # decisive sample, no direction
+    noisy = [dict(net_pct=1.0 if i % 2 else -1.0, gross_pct=1.0, pre_move_pct=0.0)
+             for i in range(40)]
+    assert "no effect distinguishable" in sa.report(noisy, 24)["verdict"]
 
 
 def test_unripe_call_is_pending_not_error():
