@@ -30,7 +30,7 @@ ELSA,39387,long,2026-11-23T15:35:37+00:00,0.10910644,0.08486026,37,-22.22,0.71,-
 ARIA,38102,long,2026-11-23T17:22:56+00:00,0.27672757,0.29907286,176,8.07,0.71,7.36,1.41,t.me/binance_futures,,,
 BTC,1,long,2026-11-23T17:37:24+00:00,61677.16444444,59966.48464363,144,-2.77,0.71,-3.48,-1.6,t.me/binance_futures,,,
 ETH,1027,short,2026-11-23T17:41:18+00:00,1753.24493983,1682.74554951,78,4.02,0.71,3.31,0.72,t.me/binance_futures,,,
-CAP,,long,2026-11-23T19:13:15+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-24T19:13:15+00:00),
+CAP,40531,long,2026-11-23T19:13:15+00:00,0.10551023,0.09193716,195,-12.86,0.71,-13.57,1.77,t.me/binance_futures,,,
 BLESS,,long,2026-11-24T09:19:28+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-25T09:19:28+00:00),
 BLESS,,long,2026-11-24T09:22:13+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-25T09:22:13+00:00),
 LISTA,,long,2026-11-24T12:51:43+00:00,,,,,,,,t.me/binance_futures,True,horizon not elapsed (exit 2026-11-25T12:51:43+00:00),
