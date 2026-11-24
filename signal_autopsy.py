@@ -122,14 +122,24 @@ def report(rows: list[dict], horizon_h: float) -> dict:
 
 
 def verdict(mean: float, t: float, n: int) -> str:
-    if n < 8:
-        return f"too few calls to judge ({n}); the arithmetic is real, the sample is not"
-    if mean < 0:
-        return "loses money after costs — the source is not a signal, whatever the screenshots say"
+    """Both directions face the same bar.
+
+    The first version let a NEGATIVE mean assert "the source is not a signal" at n=8 with no
+    t-test, while demanding t>2 of a positive one. A tool that audits other people's claims cannot
+    keep a thumb on one side of the scale: an underpowered negative is as meaningless as an
+    underpowered positive, and saying otherwise is the exact behaviour this project exists to catch.
+    """
+    if n < 30:
+        return (f"underpowered — n={n}, mean {mean:+.2f}%, t={t:.2f}; no direction claimed yet. "
+                f"The arithmetic is real, the sample is not")
     if abs(t) < 2:
-        return (f"positive but indistinguishable from luck at n={n} (t={t:.2f}) — "
-                f"keep collecting before risking anything")
-    return f"positive and statistically suggestive (t={t:.2f}) — still check pre-move drift"
+        return (f"no effect distinguishable from noise at n={n} (mean {mean:+.2f}%, t={t:.2f}) — "
+                f"the costs are measurable, the edge is not")
+    if mean < 0:
+        return (f"loses money after costs at n={n} (mean {mean:+.2f}%, t={t:.2f}) — the forward "
+                f"ledger contradicts the screenshots")
+    return (f"positive and statistically suggestive (mean {mean:+.2f}%, t={t:.2f}) at n={n} — "
+            f"still check pre-move drift before crediting the source")
 
 
 def slippage_sensitivity(rows: list[dict], slippage_bps: float, mult: float) -> dict:

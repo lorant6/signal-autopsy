@@ -1,22 +1,20 @@
-n = 25
+n = 28
 failed = 3
-pending = 7
+pending = 4
 horizon_h = 24.0
-gross_mean = -3.66
-net_mean = -4.37
-median = -2.87
-stdev = 15.53
-t_stat = -1.41
-wins = 10
-hit_rate = 40.0
-pre_move_mean = 2.45
-pre_move_positive = 16
-verdict = loses money after costs — the source is not a signal, whatever the screenshots say
+gross_mean = -2.93
+net_mean = -3.64
+median = -2.7
+stdev = 14.87
+t_stat = -1.3
+wins = 12
+hit_rate = 42.9
+pre_move_mean = 2.21
+pre_move_positive = 18
+verdict = underpowered — n=28, mean -3.64%, t=-1.30; no direction claimed yet. The arithmetic is real, the sample is not
 
 Signal Autopsy — forward book · t.me/binance_futures
-25 scored · 7 open · 3 unpriceable
-mean -4.37% net · median -2.87% · sd 15.53 · t -1.41
-10/25 profitable · pre-call drift +2.45%
-VERDICT: loses money after costs — the source is not a signal, whatever the screenshots say
-
-new: LISTA long
+28 scored · 4 open · 3 unpriceable
+mean -3.64% net · median -2.70% · sd 14.87 · t -1.30
+12/28 profitable · pre-call drift +2.21%
+VERDICT: underpowered — n=28, mean -3.64%, t=-1.30; no direction claimed yet. The arithmetic is real, the sample is not
