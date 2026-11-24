@@ -97,6 +97,10 @@ A 21-second walkthrough — the live run, the settled ledger, and the MCP tools:
 [`demo/signal-autopsy-demo.mp4`](demo/signal-autopsy-demo.mp4)
 (rendered from `demo/demo_video.html`, no screen-recording tooling required)
 
+**A real API call, with its real response:** [`docs/api_evidence.md`](docs/api_evidence.md) — the
+code, the exact request, the JSON that came back, and the two places the API made this harder than
+it needed to be.
+
 ## What it does
 
 ```
