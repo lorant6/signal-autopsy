@@ -1,6 +1,6 @@
 n = 29
 failed = 3
-pending = 3
+pending = 10
 horizon_h = 24.0
 gross_mean = -3.28
 net_mean = -3.99
@@ -14,7 +14,9 @@ pre_move_positive = 19
 verdict = underpowered — n=29, mean -3.99%, t=-1.46; no direction claimed yet. The arithmetic is real, the sample is not
 
 Signal Autopsy — forward book · t.me/binance_futures
-29 scored · 3 open · 3 unpriceable
+29 scored · 10 open · 3 unpriceable
 mean -3.99% net · median -2.87% · sd 14.72 · t -1.46
 12/29 profitable · pre-call drift +2.19%
 VERDICT: underpowered — n=29, mean -3.99%, t=-1.46; no direction claimed yet. The arithmetic is real, the sample is not
+
+new: BTC short, ETH short, ZEC short, ZEC short, BTC short, ETH short, SOL short
