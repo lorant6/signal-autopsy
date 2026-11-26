@@ -40,3 +40,5 @@
 {"added_at": "2026-11-25T04:21:32+00:00", "called_at": "2026-11-25T01:47:37+00:00", "coin": "BTC", "direction": "short", "evidence": "[2026-11-25T01:47:37+00:00] #BTC SHORT", "source": "t.me/binance_futures"}
 {"added_at": "2026-11-25T04:21:32+00:00", "called_at": "2026-11-25T01:48:21+00:00", "coin": "ETH", "direction": "short", "evidence": "[2026-11-25T01:48:21+00:00] #ETH SHORT", "source": "t.me/binance_futures"}
 {"added_at": "2026-11-25T04:21:32+00:00", "called_at": "2026-11-25T01:49:40+00:00", "coin": "SOL", "direction": "short", "evidence": "[2026-11-25T01:49:40+00:00] #SOL  Add more short", "source": "t.me/binance_futures"}
+{"added_at": "2026-11-26T06:08:32+00:00", "called_at": "2026-11-25T18:02:11+00:00", "coin": "MMT", "direction": "long", "evidence": "[2026-11-25T18:02:11+00:00] #MMT BULLISH", "source": "t.me/binance_futures"}
+{"added_at": "2026-11-26T06:08:32+00:00", "called_at": "2026-11-25T19:25:30+00:00", "coin": "ZEC", "direction": "short", "evidence": "[2026-11-25T19:25:30+00:00] #ZEC SHORT", "source": "t.me/binance_futures"}

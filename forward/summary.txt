@@ -1,22 +1,22 @@
-n = 29
+n = 39
 failed = 3
-pending = 10
+pending = 2
 horizon_h = 24.0
-gross_mean = -3.28
-net_mean = -3.99
-median = -2.87
-stdev = 14.72
-t_stat = -1.46
-wins = 12
-hit_rate = 41.4
-pre_move_mean = 2.19
-pre_move_positive = 19
-verdict = underpowered — n=29, mean -3.99%, t=-1.46; no direction claimed yet. The arithmetic is real, the sample is not
+gross_mean = -3.45
+net_mean = -4.16
+median = -3.09
+stdev = 12.75
+t_stat = -2.04
+wins = 13
+hit_rate = 33.3
+pre_move_mean = 1.85
+pre_move_positive = 29
+verdict = loses money after costs at n=39 (mean -4.16%, t=-2.04) — the forward ledger contradicts the screenshots
 
 Signal Autopsy — forward book · t.me/binance_futures
-29 scored · 10 open · 3 unpriceable
-mean -3.99% net · median -2.87% · sd 14.72 · t -1.46
-12/29 profitable · pre-call drift +2.19%
-VERDICT: underpowered — n=29, mean -3.99%, t=-1.46; no direction claimed yet. The arithmetic is real, the sample is not
+39 scored · 2 open · 3 unpriceable
+mean -4.16% net · median -3.09% · sd 12.75 · t -2.04
+13/39 profitable · pre-call drift +1.85%
+VERDICT: loses money after costs at n=39 (mean -4.16%, t=-2.04) — the forward ledger contradicts the screenshots
 
-new: BTC short, ETH short, ZEC short, ZEC short, BTC short, ETH short, SOL short
+new: MMT long, ZEC short
