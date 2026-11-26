@@ -1,22 +1,22 @@
-n = 39
+n = 41
 failed = 3
-pending = 8
+pending = 7
 horizon_h = 24.0
-gross_mean = -3.45
-net_mean = -4.16
+gross_mean = -3.84
+net_mean = -4.55
 median = -3.09
-stdev = 12.75
-t_stat = -2.04
-wins = 13
-hit_rate = 33.3
-pre_move_mean = 1.85
-pre_move_positive = 29
-verdict = loses money after costs at n=39 (mean -4.16%, t=-2.04) — the forward ledger contradicts the screenshots
+stdev = 13.15
+t_stat = -2.22
+wins = 14
+hit_rate = 34.1
+pre_move_mean = 1.72
+pre_move_positive = 30
+verdict = loses money after costs at n=41 (mean -4.55%, t=-2.22) — the forward ledger contradicts the screenshots
 
 Signal Autopsy — forward book · t.me/binance_futures
-39 scored · 8 open · 3 unpriceable
-mean -4.16% net · median -3.09% · sd 12.75 · t -2.04
-13/39 profitable · pre-call drift +1.85%
-VERDICT: loses money after costs at n=39 (mean -4.16%, t=-2.04) — the forward ledger contradicts the screenshots
+41 scored · 7 open · 3 unpriceable
+mean -4.55% net · median -3.09% · sd 13.15 · t -2.22
+14/41 profitable · pre-call drift +1.72%
+VERDICT: loses money after costs at n=41 (mean -4.55%, t=-2.22) — the forward ledger contradicts the screenshots
 
-new: EVAA long, BLESS long, PIEVERSE long, ZEC short, BTC short, ETH short
+new: ZEC short
