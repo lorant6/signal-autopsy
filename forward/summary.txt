@@ -1,22 +1,22 @@
-n = 44
+n = 47
 failed = 3
-pending = 7
+pending = 8
 horizon_h = 24.0
-gross_mean = -4.04
-net_mean = -4.75
-median = -3.08
-stdev = 13.14
+gross_mean = -3.76
+net_mean = -4.47
+median = -3.07
+stdev = 12.77
 t_stat = -2.4
-wins = 16
-hit_rate = 36.4
-pre_move_mean = 1.45
-pre_move_positive = 31
-verdict = loses money after costs at n=44 (mean -4.75%, t=-2.40) — the forward ledger contradicts the screenshots
+wins = 18
+hit_rate = 38.3
+pre_move_mean = 1.42
+pre_move_positive = 34
+verdict = loses money after costs at n=47 (mean -4.47%, t=-2.40) — the forward ledger contradicts the screenshots
 
 Signal Autopsy — forward book · t.me/binance_futures
-44 scored · 7 open · 3 unpriceable
-mean -4.75% net · median -3.08% · sd 13.14 · t -2.40
-16/44 profitable · pre-call drift +1.45%
-VERDICT: loses money after costs at n=44 (mean -4.75%, t=-2.40) — the forward ledger contradicts the screenshots
+47 scored · 8 open · 3 unpriceable
+mean -4.47% net · median -3.07% · sd 12.77 · t -2.40
+18/47 profitable · pre-call drift +1.42%
+VERDICT: loses money after costs at n=47 (mean -4.47%, t=-2.40) — the forward ledger contradicts the screenshots
 
-new: BTC long, BTC long, BTC long
+new: BTC long, BTC long, BTC long, BTC long
