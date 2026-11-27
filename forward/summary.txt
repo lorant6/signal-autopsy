@@ -18,5 +18,3 @@ Signal Autopsy — forward book · t.me/binance_futures
 mean -4.55% net · median -3.09% · sd 13.15 · t -2.22
 14/41 profitable · pre-call drift +1.72%
 VERDICT: loses money after costs at n=41 (mean -4.55%, t=-2.22) — the forward ledger contradicts the screenshots
-
-new: ZEC short
