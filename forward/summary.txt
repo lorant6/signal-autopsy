@@ -1,6 +1,6 @@
 n = 48
 failed = 3
-pending = 10
+pending = 11
 horizon_h = 24.0
 gross_mean = -3.75
 net_mean = -4.46
@@ -14,9 +14,9 @@ pre_move_positive = 34
 verdict = loses money after costs at n=48 (mean -4.46%, t=-2.44) — the forward ledger contradicts the screenshots
 
 Signal Autopsy — forward book · t.me/binance_futures
-48 scored · 10 open · 3 unpriceable
+48 scored · 11 open · 3 unpriceable
 mean -4.46% net · median -3.08% · sd 12.63 · t -2.44
 18/48 profitable · pre-call drift +1.38%
 VERDICT: loses money after costs at n=48 (mean -4.46%, t=-2.44) — the forward ledger contradicts the screenshots
 
-new: VELVET long, ICNT long, PIEVERSE long
+new: PEPE long
