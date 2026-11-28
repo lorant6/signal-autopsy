@@ -1,22 +1,22 @@
-n = 51
+n = 55
 failed = 3
 pending = 10
 horizon_h = 24.0
-gross_mean = -3.73
-net_mean = -4.44
-median = -3.1
-stdev = 12.25
-t_stat = -2.59
+gross_mean = -3.58
+net_mean = -4.29
+median = -3.09
+stdev = 11.8
+t_stat = -2.7
 wins = 18
-hit_rate = 35.3
-pre_move_mean = 1.29
-pre_move_positive = 34
-verdict = loses money after costs at n=51 (mean -4.44%, t=-2.59) — the forward ledger contradicts the screenshots
+hit_rate = 32.7
+pre_move_mean = 1.06
+pre_move_positive = 35
+verdict = loses money after costs at n=55 (mean -4.29%, t=-2.70) — the forward ledger contradicts the screenshots
 
 Signal Autopsy — forward book · t.me/binance_futures
-51 scored · 10 open · 3 unpriceable
-mean -4.44% net · median -3.10% · sd 12.25 · t -2.59
-18/51 profitable · pre-call drift +1.29%
-VERDICT: loses money after costs at n=51 (mean -4.44%, t=-2.59) — the forward ledger contradicts the screenshots
+55 scored · 10 open · 3 unpriceable
+mean -4.29% net · median -3.09% · sd 11.80 · t -2.70
+18/55 profitable · pre-call drift +1.06%
+VERDICT: loses money after costs at n=55 (mean -4.29%, t=-2.70) — the forward ledger contradicts the screenshots
 
-new: EVAA long, EVAA long
+new: O long, O long, O long, ELSA long
